@@ -1,0 +1,130 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=1.5cm]{geometry} % Aggressive margins to respect the 5-page strict limit
+\usepackage{graphicx}
+\usepackage{booktabs} % SOTA table formatting
+\usepackage{pgfplots} % SOTA plotting directly in LaTeX
+\pgfplotsset{compat=1.18}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{enumitem}
+\usepackage{etoolbox}
+\makeatletter
+\apptocmd{\@floatboxreset}{\centering}{}{}
+\makeatother
+
+
+\begin{document}
+	
+\begin{titlepage}
+	\centering
+	% Empuja el título para que no quede pegado al margen absoluto superior
+	\vspace*{2cm} 
+	
+	{\Large \textbf{Proyecto introducción a sistemas distribuidos}\par}
+	
+	\vfill % <-- Primer resorte
+	
+	% Reemplaza con la ruta de tu logo vectorizado
+	\includegraphics[width=0.35\textwidth]{Images/jave logo.png}\par
+	\vspace{0.5cm} % Mantén el logo y el departamento agrupados visualmente
+	{\large \textbf{Depto. de Ingeniería de Sistemas}\par}
+	
+	\vfill % <-- Segundo resorte
+	
+	{\textbf{Integrantes:}}\par
+	Alejandro González Ochoa\par
+	Solon Andrés Lozada\par
+	[Integrante 3]\par
+	
+	\vfill % <-- Tercer resorte
+	
+	{\textbf{Docente:}}\par
+	Ricardo Hjalmar Gonzalez Garcia\par
+	
+	\vfill % <-- Cuarto resorte
+	
+	{\normalsize 8 de octubre de 2026\par}
+	
+	% Margen inferior para que la fecha no toque el borde de la hoja
+	\vspace*{1cm} 
+\end{titlepage}
+
+% ---------------------------------------------------------
+% PRIMERA ENTREGA (Max 5 pages)
+% ---------------------------------------------------------
+
+\section{Modelos del sistema}
+\label{sec:models}
+
+
+A continuación se explican los modelos que usa el sistema de reservas.
+
+
+\subsection{Modelo Arquitectónico}
+\label{sec:models_arch}
+
+Para el modelo arquitectónico (\cref{fig:model_capas}) el sistema tendrá un modelo de 3 capas: la capa de consumidores, la de servicios, y la de persistencia.
+
+\begin{figure}[htbp]
+	\includegraphics[width=0.7\textwidth]{Images/Modelo de capas sistema.png}
+	\caption{Modelo arquitectónico de n capas del sistema}
+	\label{fig:model_capas}
+\end{figure}
+
+
+\subsection{Modelo de Interacción}
+\label{sec:models_exch}
+
+El sistema implementara 2 modelos de interacción (SERA SINCRONIA EN LA PRIMITIVAS DE COMUNICACION, O SERA UN MODELO DEL SISTEMA COMO TAL). Para el caso de la consulta y reserva de boletos se manejara una comunicación sincrona, mientras que para la cancelación y notificación a usuarios sera asincrona.
+
+\section{Base Architecture Design}
+\label{sec:base_arch}
+% Detail the entire system from Figure 1 using the base architecture.
+\subsection{Deployment Diagram}
+% Insert Deployment diagram here.
+\subsection{Component Diagram}
+% Insert Component diagram here.
+\subsection{Class Diagram}
+% Insert Class diagram here.
+\subsection{Sequence Diagram}
+% Insert Sequence diagram here for synchronous (ZeroMQ Request/Reply) and asynchronous (ZeroMQ Pub/Sub or Push/Pull) patterns.
+
+\section{Scalability and Fault Tolerance Strategy}
+\label{sec:scalability}
+% Mention and justify the components included to make the architecture scalable (e.g., RMC and DB replicas) and fault-tolerant (GT or RMC failover).
+
+\section{Testing Protocol and Load Generation}
+\label{sec:testing}
+% Define the testing protocol for the final delivery.
+% Specify tools/methods for client load generation (Locust or JMeter).
+% Detail the tools and strategies used to obtain the performance metrics (Throughput/TPM, Response Time).
+
+% ---------------------------------------------------------
+% SEGUNDA ENTREGA (Max 5 additional pages or overriding the first)
+% ---------------------------------------------------------
+
+\section{Performance Analysis}
+\label{sec:performance}
+\subsection{Hardware and Software Specifications}
+% Detail HW/SW specs where measurements were taken. 
+
+\subsection{Metrics and Results}
+% Present Data in tables and graphs comparing the Base Architecture vs. Scalable Architecture for 3, 5, and 8 concurrent clients.
+% Example Table utilizing SOTA booktabs:
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Load} & \textbf{Metric} & \textbf{Base Arch} & \textbf{Scalable Arch} \\ \midrule
+3 Clients & Avg Response Time (ms) & ... & ... \\
+ & TPM (Queries) & ... & ... \\ \bottomrule
+\end{tabular}
+\caption{Performance comparison under 3-client workload.}
+\end{table}
+
+\subsection{Analysis}
+% Comment on the results of interest and derive conclusions consistent with these results. Quantify how much the performance metrics improve with the scalable design.
+
+\end{document}

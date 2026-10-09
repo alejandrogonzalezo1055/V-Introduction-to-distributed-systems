@@ -1,0 +1,32 @@
+# Archivos PDF y fuentes finales que SÍ se versionan
+# (No pongas excepciones para el PDF aquí, déjalo libre para que se suba)
+
+# Archivos auxiliares de compilación de LaTeX
+*.aux
+*.log
+*.toc
+*.out
+*.lof
+*.lot
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.xdv
+
+# Archivos de índices y bibliografía avanzados
+*.idx
+*.ilg
+*.ind
+*.nlo
+*.nls
+*.bcf
+*.xml
+*.run.xml
+
+# Directorios de compilación temporal (si usas herramientas como latexmk o tectonic)
+_minted-*
+*.toc.bak
+*.lof.bak
+*.lot.bak
