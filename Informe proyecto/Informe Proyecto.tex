@@ -65,7 +65,7 @@ A continuación se explican los modelos que usa el sistema de reservas.
 \subsection{Modelo Arquitectónico}
 \label{sec:models_arch}
 
-Para el modelo arquitectónico (\cref{fig:model_capas}) el sistema tendrá un modelo de 3 capas: la capa de consumidores, la de servicios, y la de persistencia.
+El sistema tendrá un modelo de 3 capas, como se observa en (\cref{fig:model_capas}).
 
 \begin{figure}[htbp]
 	\includegraphics[width=0.7\textwidth]{Images/Modelo de capas sistema.png}
@@ -73,29 +73,44 @@ Para el modelo arquitectónico (\cref{fig:model_capas}) el sistema tendrá un mo
 	\label{fig:model_capas}
 \end{figure}
 
+La \textbf{capa de consumidores} se encarga de pasarle solicitudes y peticiones de los clientes al gestor de transacciones. Cada cliente puede hacer peticiones de reservas, modificación, consulta, y cancelación de reserva.
+
+La \textbf{capa de servicios} tiene dos procesos distintos. El \textit{gestor de transacciones} enruta las peticiones del sistema a su canal sincrono que se encarga de las solicitudes de reserva, modificación, y consultas mediante el proceso Reservas/Modificaciones/Consultas y se comunicara con las demas capas mediantes el patrón REQ/REP; o al canal asincrono, que usando el servicio de cancelación de reservas y mediante el patrón PUB/SUB se encarga de las solicitudes de cancelación pues estas no requieren notificar al cliente.
+
+Finalmente la \textbf{capa de almacenamiento} se encargara de garantizar la persistencia de las reservas de todo el sistema, esto lo hara mediante operaciones CRUD hacia una base de datos Postgrace SQL. 
+
 
 \subsection{Modelo de Interacción}
 \label{sec:models_exch}
 
-El sistema implementara 2 modelos de interacción (SERA SINCRONIA EN LA PRIMITIVAS DE COMUNICACION, O SERA UN MODELO DEL SISTEMA COMO TAL). Para el caso de la consulta y reserva de boletos se manejara una comunicación sincrona, mientras que para la cancelación y notificación a usuarios sera asincrona.
+El sistema, como se menciona en \cref{sec:models_arch}, manejara peticiones de forma sincrona y asincrona. El proceso RMC se controlara por medio de un proceso sincrono, pues la buena detección de errores ayuda a conservar la integridad de los datos. El sistema de cancelación no necesita saber si cada cliente recibió o no la notificación de su solicitud realizada, lo que contribuye a la mejora del rendimiento del sistema.
 
-\section{Base Architecture Design}
+
+\subsection{Modelo de Fallos}
+\label{sec:models_fail}
+
+
+
+\subsection{Modelo de Seguridad}
+\label{sec:models_secu}
+
+\section{Diseño del Sistema}
 \label{sec:base_arch}
 % Detail the entire system from Figure 1 using the base architecture.
-\subsection{Deployment Diagram}
+\subsection{Diagrama de Clases}
 % Insert Deployment diagram here.
-\subsection{Component Diagram}
+\subsection{Diagrama de Componentes}
 % Insert Component diagram here.
-\subsection{Class Diagram}
+\subsection{Diagrama de Despliegue}
 % Insert Class diagram here.
-\subsection{Sequence Diagram}
+\subsection{Diagrama de Secuencias}
 % Insert Sequence diagram here for synchronous (ZeroMQ Request/Reply) and asynchronous (ZeroMQ Pub/Sub or Push/Pull) patterns.
 
-\section{Scalability and Fault Tolerance Strategy}
+\section{Estrategia de Escalabilidad y Tolerancia a Fallos}
 \label{sec:scalability}
 % Mention and justify the components included to make the architecture scalable (e.g., RMC and DB replicas) and fault-tolerant (GT or RMC failover).
 
-\section{Testing Protocol and Load Generation}
+\section{Estrategia de obtención de métricas y carga de los clientes}
 \label{sec:testing}
 % Define the testing protocol for the final delivery.
 % Specify tools/methods for client load generation (Locust or JMeter).
@@ -105,6 +120,7 @@ El sistema implementara 2 modelos de interacción (SERA SINCRONIA EN LA PRIMITIV
 % SEGUNDA ENTREGA (Max 5 additional pages or overriding the first)
 % ---------------------------------------------------------
 
+\iffalse
 \section{Performance Analysis}
 \label{sec:performance}
 \subsection{Hardware and Software Specifications}
@@ -126,5 +142,6 @@ El sistema implementara 2 modelos de interacción (SERA SINCRONIA EN LA PRIMITIV
 
 \subsection{Analysis}
 % Comment on the results of interest and derive conclusions consistent with these results. Quantify how much the performance metrics improve with the scalable design.
+\fi
 
 \end{document}
