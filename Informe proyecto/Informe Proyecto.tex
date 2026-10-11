@@ -101,7 +101,15 @@ La seguridad es un pilar importante en nuestro sistema; la confidencialidad e in
 \label{sec:base_arch}
 % Detail the entire system from Figure 1 using the base architecture.
 \subsection{Diagrama de Componentes}
-% Insert Deployment diagram here.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Diagrama de componentes.drawio.png}
+    \caption{Diagrama de componentes}
+    \label{fig:mi_imagen}
+\end{figure}
+Este diagrama busca obtener una visualización más acertada sobre como trabajan los componentes entre sí y cuales son los protocolos que se usan para dicha comunicación.
+La mayor parte de las comunicaciones se hacen con el patrón REQ/ROUTER porque nos pareció una solución adecuada para este tipo de sistema. Por otro lado está la comunicación PULL/PUSH la cual se usa para mensajes asíncronos mediante un pipeline.
+Una última anotación es decidimos agregar un servicio llamado servicio de persistencia el cual se encarga de recibir las solicitudes de los servicios de cancelación y RMC para así poder interactuar con la base de datos, este es el único que lo puede hacer conectándose por TCP/IP.
 \subsection{Diagrama de Despliegue}
 % Insert Component diagram here.
 \subsection{Diagrama de Clases}
