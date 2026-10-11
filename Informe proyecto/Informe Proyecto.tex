@@ -53,6 +53,10 @@
 	% PRIMERA ENTREGA (Max 5 pages)
 	% ---------------------------------------------------------
 	
+	
+	{\small \textbf{\textit{Keywords}---}proceso de Reserva Modificación y Consulta, ZeroMQ, Sistema de Reseva de Boletos.\par}
+	
+	
 	\section{Modelos del sistema}
 	\label{sec:models}
 	
@@ -72,7 +76,7 @@
 	
 	La \textbf{capa de consumidores} se encarga de pasarle solicitudes y peticiones de los clientes al gestor de transacciones. Cada cliente puede hacer peticiones de reservas, modificación, consulta, y cancelación de reserva.
 	
-	La \textbf{capa de servicios} tiene dos procesos distintos. El \textit{gestor de transacciones} enruta las peticiones del sistema a su canal sincrono que se encarga de las solicitudes de reserva, modificación, y consultas mediante el proceso Reservas/Modificaciones/Consultas y se comunicara con las demas capas mediantes el patrón REQ/ROUTER; o al canal asincrono, que usando el servicio de cancelación de reservas y mediante el patrón PUSH/PULL se encarga de las solicitudes de cancelación pues estas no requieren notificar al cliente.
+	La \textbf{capa de servicios} tiene dos procesos distintos. El \textit{gestor de transacciones} enruta las peticiones del sistema a su canal sincrono que se encarga de las solicitudes de reserva, modificación, y consultas mediante el proceso RMC y se comunicara con las demas capas mediantes el patrón REQ/ROUTER; o al canal asincrono, que usando el servicio de \textit{cancelación de reservas} y mediante el patrón PUSH/PULL se encarga de las solicitudes de cancelación pues estas no requieren notificar al cliente.
 	
 	Finalmente la \textbf{capa de almacenamiento} se encargara de garantizar la persistencia de las reservas de todo el sistema, esto lo hara mediante operaciones CRUD hacia una base de datos Postgress SQL.
 	
@@ -94,9 +98,12 @@
 	\label{sec:models_secu}
 	La seguridad es un pilar importante en nuestro sistema; la confidencialidad e integridad son vulnerables debido a que se utiliza la libreria ZeroMQ por lo que si este canal no es asegurado los mensajes viajarian en texto plano permitiendo que un atacante pueda interceptar los datos. La disponibilidad se puede llegar a ver afectada si el gestor de transacciones recibe muchas DoS, lo cual podría llegar a saturarlo.
 	
+	
 	\section{Diseño del Sistema}
 	\label{sec:base_arch}
-	% Detail the entire system from Figure 1 using the base architecture.
+	
+	Para comprender mejor el sistema se realizaron 4 diagramas de distintas vistas del sistema, vistas estáticas que permiten ver la estructura física y lógica del SRB junto con la forma en la que este funcionara internamente, y una vista dinámica que permite ver el comportamiento del SRB. 
+	
 	\subsection{Diagrama de Componentes}
 	\begin{figure}[H]
 		\includegraphics[width=1\textwidth]{Images/Diagrama de componentes.png}
