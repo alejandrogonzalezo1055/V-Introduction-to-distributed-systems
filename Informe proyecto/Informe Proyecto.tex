@@ -83,13 +83,13 @@ Finalmente la \textbf{capa de almacenamiento} se encargara de garantizar la pers
 \subsection{Modelo de Interacción}
 \label{sec:models_exch}
 
-EEn este proyecto se integran tanto modelos síncronos como asíncronos. 
+En este proyecto se integran tanto modelos síncronos como asíncronos. 
 En cuanto al modelo síncrono, se utiliza cuando los clientes quieren realizar reservas, modificaciones o consultas, estas solicitudes son recibidas por el gestor de transacciones el cual las enruta hacia el servicio RMC, en donde este solicita y aguarda la respuesta de la capa de almacenamiento, hasta que no suceda todo este proceso el cliente no recibe una confirmación.El patrón de comunicación que vamos a usar va a ser \textbf{request-router}, se escoge este ya que nos permite tener varias solicitudes al mismo tiempo, teniendo en cuenta que el request en este caso serían los clientes y el router seria el gestor de transacciones, estos se comunican mediante sockets y se le establece a cada solicitud un identificador único para su correcta respuesta.
 El modelo asíncrono se va a usar cuando los clientes quieran cancelar una reservación, es decir, entre el gestor de transacciones y el servicio de cancelación, el gestor acepta la cancelación y le da una respuesta inmediata al cliente; se va a realizar un patrón push/pull mediante pipeline ya que este incorpora un balanceador de cargas round robin el cual nos va a ayudar más adelante para la escalabilidad.
 
 \subsection{Modelo de Fallos}
 \label{sec:models_fail}
-Como se debe esperar que el gestor de transacciones o el RMC (Servicio que procesa reservas, modificaciones y consultas) fallen, planteamos un fallo de tipo fail-stop en donde un proceso falla pero los demás se dan cuenta del fallo, esto supone un problema grave ya que se requiere garantizar transparencia con los clientes dado que falle uno de los servicios más importantes como el gestor de transacciones o un servicio que hace varias funciones como lo es el RMC, más adelante se verá nuestra propuesta para tratar la tolerancia a estos fallos.
+Como se debe esperar que el gestor de transacciones o el RMC (Servicio que procesa reservas, modificaciones y consultas) fallen, planteamos un fallo de tipo fail-stop en donde un proceso falla pero los demás se dan cuenta del fallo, esto supone un problema grave ya que se requiere garantizar transparencia con los clientes dado que falle uno de los servicios más importantes como el gestor de transacciones o un servicio que hace varias funciones como lo es el RMC. En el peor de los casos el GT o el RMC presentarian un crash, sin embargo más adelante se verá nuestra propuesta para tratar la tolerancia a estos fallos.
 
 
 
@@ -111,7 +111,13 @@ La seguridad es un pilar importante en nuestro sistema; la confidencialidad e in
 
 \section{Estrategia de Escalabilidad y Tolerancia a Fallos}
 \label{sec:scalability}
-% Mention and justify the components included to make the architecture scalable (e.g., RMC and DB replicas) and fault-tolerant (GT or RMC failover).
+La estrategia de escalabilidad se fundamenta en hacer escalamiento horizontal en la capa que lo requiera, donde cada maquina sera una capa distina y cada capa tendra un contenedor por proceso. Para los servicios de negocio sin estado como RMC y Cancelaciones, la capacidad se incrementa instanciando dinámicamente nuevos contenedores cuyo tráfico es distribuido por el Gestor de Transacciones mediante el patron ROUTER-DEALER con ZeroMQ. Por su parte, la capa de persistencia con estado en PostgreSQL se escala mediante un esquema de replicación de base de datos, garantizando un alto rendimiento en transacciones por minuto, aislamiento de recursos y alta disponibilidad.
+
+El manejo de fallos usara dos estrategias, para los fallos fail-stop en RMC se implementaran time outs pues estos confirman si el proceso murio o no, en cancelaciones por otro lado se esperara que el proceso envie "señales de vida" cada cierto tiempo pues dependiendo de esa señal el detector determinara si el proceso se considera como muerto o no. En caso de que un proceso en especifico falle este sera reemplazado por una copia del mismo para garantizar la transparencia de fallos.
+
+
+\section{Protocolo de Pruebas de la entrega final}
+
 
 \section{Estrategia de obtención de métricas y carga de los clientes}
 \label{sec:testing}
