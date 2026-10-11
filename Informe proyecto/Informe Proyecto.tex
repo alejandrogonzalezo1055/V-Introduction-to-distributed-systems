@@ -1,165 +1,134 @@
 \documentclass[10pt, a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[spanish]{babel}
-\usepackage[margin=1.5cm]{geometry} % Aggressive margins to respect the 5-page strict limit
+\usepackage[margin=1.5cm]{geometry}
 \usepackage{graphicx}
-\usepackage{booktabs} % SOTA table formatting
-\usepackage{pgfplots} % SOTA plotting directly in LaTeX
+\usepackage{booktabs} 
+\usepackage{pgfplots} 
 \pgfplotsset{compat=1.18}
 \usepackage{hyperref}
+\hypersetup{
+	colorlinks=True,
+	linkbordercolor=white,
+	citecolor=black
+	linkcolor=black
+}
 \usepackage{cleveref}
 \usepackage{enumitem}
 \usepackage{etoolbox}
+\usepackage{authblk}
+\usepackage{xcolor}
+\usepackage{float}
+
 \makeatletter
 \apptocmd{\@floatboxreset}{\centering}{}{}
 \makeatother
 
+\title{\vspace{-1.5cm}\Large \textbf{Proyecto Sistemas Distribuidos}}
+\author[1]{Solon Losada Cadena}
+\author[1]{Juan Pablo Peña Bernal}
+\author[1]{Alejandro González Ochoa}
+\affil[1]{Departamento Ingenieria de Sistemas, Pontificia Universidad Javeriana, Bogotá, 110231, Colombia.}
+\date{}
 
 \begin{document}
 	
-\begin{titlepage}
-	\centering
-	% Empuja el título para que no quede pegado al margen absoluto superior
-	\vspace*{2cm} 
+	\maketitle
 	
-	{\Large \textbf{Proyecto introducción a sistemas distribuidos}\par}
+	\begin{center}
+		\small Contributing authors: \href{mailto:solon.losadac@javeriana.edu.co}{\color{blue}solon.losadac@javeriana.edu.co}; \href{mailto:jp.penab@javeriana.edu.co}{\color{blue}jp.penab@javeriana.edu.co}; \href{mailto:alejandro.gonzalez.o1055@javeriana.edu.co}{\color{blue}alejandro.gonzalez.o1055@javeriana.edu.co}
+	\end{center}
 	
-	\vfill % <-- Primer resorte
+	\vspace{0.5cm}
 	
-	% Reemplaza con la ruta de tu logo vectorizado
-	\includegraphics[width=0.35\textwidth]{Images/jave logo.png}\par
-	\vspace{0.5cm} % Mantén el logo y el departamento agrupados visualmente
-	{\large \textbf{Depto. de Ingeniería de Sistemas}\par}
+	\begin{center}
+		\textbf{Docente:} Ricardo Hjalmar González García \\
+		\textbf{Fecha:} 8 de octubre de 2026
+	\end{center}
 	
-	\vfill % <-- Segundo resorte
+	\vspace{0.5cm}
 	
-	{\textbf{Integrantes:}}\par
-	Alejandro González Ochoa\par
-	Solon Andrés Lozada Cadena\par
-	Juan Pablo Peña Bernal\par
 	
-	\vfill % <-- Tercer resorte
+	% ---------------------------------------------------------
+	% PRIMERA ENTREGA (Max 5 pages)
+	% ---------------------------------------------------------
 	
-	{\textbf{Docente:}}\par
-	Ricardo Hjalmar Gonzalez Garcia\par
+	\section{Modelos del sistema}
+	\label{sec:models}
 	
-	\vfill % <-- Cuarto resorte
 	
-	{\normalsize 8 de octubre de 2026\par}
+	A continuación se explican los modelos que usa el sistema de reservas.
 	
-	% Margen inferior para que la fecha no toque el borde de la hoja
-	\vspace*{1cm} 
-\end{titlepage}
-
-% ---------------------------------------------------------
-% PRIMERA ENTREGA (Max 5 pages)
-% ---------------------------------------------------------
-
-\section{Modelos del sistema}
-\label{sec:models}
-
-
-A continuación se explican los modelos que usa el sistema de reservas.
-
-
-\subsection{Modelo Arquitectónico}
-\label{sec:models_arch}
-
-De acuerdo con la arquitectura del software que se nos dio a diseñar e implementar, observamos un \textbf{estilo arquitectónico de capas}:(\cref{fig:model_capas}).
-
-\begin{figure}[htbp]
-	\includegraphics[width=0.7\textwidth]{Images/Modelo de capas sistema.png}
-	\caption{Modelo arquitectónico de n capas del sistema}
-	\label{fig:model_capas}
-\end{figure}
-
-La \textbf{capa de consumidores} se encarga de pasarle solicitudes y peticiones de los clientes al gestor de transacciones. Cada cliente puede hacer peticiones de reservas, modificación, consulta, y cancelación de reserva.
-
-La \textbf{capa de servicios} tiene dos procesos distintos. El \textit{gestor de transacciones} enruta las peticiones del sistema a su canal sincrono que se encarga de las solicitudes de reserva, modificación, y consultas mediante el proceso Reservas/Modificaciones/Consultas y se comunicara con las demas capas mediantes el patrón REQ/ROUTER; o al canal asincrono, que usando el servicio de cancelación de reservas y mediante el patrón PUSH/PULL se encarga de las solicitudes de cancelación pues estas no requieren notificar al cliente.
-
-Finalmente la \textbf{capa de almacenamiento} se encargara de garantizar la persistencia de las reservas de todo el sistema, esto lo hara mediante operaciones CRUD hacia una base de datos Postgress SQL.
-
-
-\subsection{Modelo de Interacción}
-\label{sec:models_exch}
-
-En este proyecto se integran tanto modelos síncronos como asíncronos. 
-En cuanto al modelo síncrono, se utiliza cuando los clientes quieren realizar reservas, modificaciones o consultas, estas solicitudes son recibidas por el gestor de transacciones el cual las enruta hacia el servicio RMC, en donde este solicita y aguarda la respuesta de la capa de almacenamiento, hasta que no suceda todo este proceso el cliente no recibe una confirmación.El patrón de comunicación que vamos a usar va a ser \textbf{request-router}, se escoge este ya que nos permite tener varias solicitudes al mismo tiempo, teniendo en cuenta que el request en este caso serían los clientes y el router seria el gestor de transacciones, estos se comunican mediante sockets y se le establece a cada solicitud un identificador único para su correcta respuesta.
-El modelo asíncrono se va a usar cuando los clientes quieran cancelar una reservación, es decir, entre el gestor de transacciones y el servicio de cancelación, el gestor acepta la cancelación y le da una respuesta inmediata al cliente; se va a realizar un patrón push/pull mediante pipeline ya que este incorpora un balanceador de cargas round robin el cual nos va a ayudar más adelante para la escalabilidad.
-
-\subsection{Modelo de Fallos}
-\label{sec:models_fail}
-Como se debe esperar que el gestor de transacciones o el RMC (Servicio que procesa reservas, modificaciones y consultas) fallen, planteamos un fallo de tipo fail-stop en donde un proceso falla pero los demás se dan cuenta del fallo, esto supone un problema grave ya que se requiere garantizar transparencia con los clientes dado que falle uno de los servicios más importantes como el gestor de transacciones o un servicio que hace varias funciones como lo es el RMC. En el peor de los casos el GT o el RMC presentarian un crash, sin embargo más adelante se verá nuestra propuesta para tratar la tolerancia a estos fallos.
-
-
-
-\subsection{Modelo de Seguridad}
-\label{sec:models_secu}
-La seguridad es un pilar importante en nuestro sistema; la confidencialidad e integridad son vulnerables debido a que se utiliza la libreria ZeroMQ por lo que si este canal no es asegurado los mensajes viajarian en texto plano permitiendo que un atacante pueda interceptar los datos. La disponibilidad se puede llegar a ver afectada si el gestor de transacciones recibe muchas DoS, lo cual podría llegar a saturarlo.
-
-\section{Diseño del Sistema}
-\label{sec:base_arch}
-% Detail the entire system from Figure 1 using the base architecture.
-\subsection{Diagrama de Componentes}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Diagrama de componentes.drawio.png}
-    \caption{Diagrama de componentes}
-    \label{fig:mi_imagen}
-\end{figure}
-Este diagrama busca obtener una visualización más acertada sobre como trabajan los componentes entre sí y cuales son los protocolos que se usan para dicha comunicación.
-La mayor parte de las comunicaciones se hacen con el patrón REQ/ROUTER porque nos pareció una solución adecuada para este tipo de sistema. Por otro lado está la comunicación PULL/PUSH la cual se usa para mensajes asíncronos mediante un pipeline.
-Una última anotación es decidimos agregar un servicio llamado servicio de persistencia el cual se encarga de recibir las solicitudes de los servicios de cancelación y RMC para así poder interactuar con la base de datos, este es el único que lo puede hacer conectándose por TCP/IP.
-\subsection{Diagrama de Despliegue}
-% Insert Component diagram here.
-\subsection{Diagrama de Clases}
-% Insert Class diagram here.
-\subsection{Diagrama de Secuencias}
-% Insert Sequence diagram here for synchronous (ZeroMQ Request/Reply) and asynchronous (ZeroMQ Pub/Sub or Push/Pull) patterns.
-
-\section{Estrategia de Escalabilidad y Tolerancia a Fallos}
-\label{sec:scalability}
-La estrategia de escalabilidad se fundamenta en hacer escalamiento horizontal en la capa que lo requiera, donde cada maquina sera una capa distina y cada capa tendra un contenedor por proceso. Para los servicios de negocio sin estado como RMC y Cancelaciones, la capacidad se incrementa instanciando dinámicamente nuevos contenedores cuyo tráfico es distribuido por el Gestor de Transacciones mediante el patron ROUTER-DEALER con ZeroMQ. Por su parte, la capa de persistencia con estado en PostgreSQL se escala mediante un esquema de replicación de base de datos, garantizando un alto rendimiento en transacciones por minuto, aislamiento de recursos y alta disponibilidad.
-
-El manejo de fallos usara dos estrategias, para los fallos fail-stop en RMC se implementaran time outs pues estos confirman si el proceso murio o no, en cancelaciones por otro lado se esperara que el proceso envie "señales de vida" cada cierto tiempo pues dependiendo de esa señal el detector determinara si el proceso se considera como muerto o no. En caso de que un proceso en especifico falle este sera reemplazado por una copia del mismo para garantizar la transparencia de fallos.
-
-
-\section{Protocolo de Pruebas de la entrega final}
-
-
-\section{Estrategia de obtención de métricas y carga de los clientes}
-\label{sec:testing}
-% Define the testing protocol for the final delivery.
-% Specify tools/methods for client load generation (Locust or JMeter).
-La herramienta que vamos a usar es \textbf{Locust} ya que permite ver los tiempos de respuesta y los errores en tiempo real, además su lenguaje es en python y se puede ejecutar en varias máquinas, lo que nos asegura medir de forma óptima la escalabilidad.
-% Detail the tools and strategies used to obtain the performance metrics (Throughput/TPM, Response Time).
-
-% ---------------------------------------------------------
-% SEGUNDA ENTREGA (Max 5 additional pages or overriding the first)
-% ---------------------------------------------------------
-
-\iffalse
-\section{Performance Analysis}
-\label{sec:performance}
-\subsection{Hardware and Software Specifications}
-% Detail HW/SW specs where measurements were taken. 
-
-\subsection{Metrics and Results}
-% Present Data in tables and graphs comparing the Base Architecture vs. Scalable Architecture for 3, 5, and 8 concurrent clients.
-% Example Table utilizing SOTA booktabs:
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}llcc@{}}
-\toprule
-\textbf{Load} & \textbf{Metric} & \textbf{Base Arch} & \textbf{Scalable Arch} \\ \midrule
-3 Clients & Avg Response Time (ms) & ... & ... \\
- & TPM (Queries) & ... & ... \\ \bottomrule
-\end{tabular}
-\caption{Performance comparison under 3-client workload.}
-\end{table}
-
-\subsection{Analysis}
-% Comment on the results of interest and derive conclusions consistent with these results. Quantify how much the performance metrics improve with the scalable design.
-\fi
-
+	
+	\subsection{Modelo Arquitectónico}
+	\label{sec:models_arch}
+	
+	De acuerdo con la arquitectura del software que se nos dio a diseñar e implementar, observamos un \textbf{estilo arquitectónico de capas}: (\cref{fig:model_capas}).
+	
+	\begin{figure}[H]
+		\includegraphics[width=0.7\textwidth]{Images/Modelo de capas sistema.png}
+		\caption{Modelo arquitectónico de 3 capas del sistema}
+		\label{fig:model_capas}
+	\end{figure}
+	
+	La \textbf{capa de consumidores} se encarga de pasarle solicitudes y peticiones de los clientes al gestor de transacciones. Cada cliente puede hacer peticiones de reservas, modificación, consulta, y cancelación de reserva.
+	
+	La \textbf{capa de servicios} tiene dos procesos distintos. El \textit{gestor de transacciones} enruta las peticiones del sistema a su canal sincrono que se encarga de las solicitudes de reserva, modificación, y consultas mediante el proceso Reservas/Modificaciones/Consultas y se comunicara con las demas capas mediantes el patrón REQ/ROUTER; o al canal asincrono, que usando el servicio de cancelación de reservas y mediante el patrón PUSH/PULL se encarga de las solicitudes de cancelación pues estas no requieren notificar al cliente.
+	
+	Finalmente la \textbf{capa de almacenamiento} se encargara de garantizar la persistencia de las reservas de todo el sistema, esto lo hara mediante operaciones CRUD hacia una base de datos Postgress SQL.
+	
+	
+	\subsection{Modelo de Interacción}
+	\label{sec:models_exch}
+	
+	En este proyecto se integran tanto modelos síncronos como asíncronos. 
+	En cuanto al modelo síncrono, se utiliza cuando los clientes quieren realizar reservas, modificaciones o consultas, estas solicitudes son recibidas por el gestor de transacciones el cual las enruta hacia el servicio RMC, en donde este solicita y aguarda la respuesta de la capa de almacenamiento, hasta que no suceda todo este proceso el cliente no recibe una confirmación. El patrón de comunicación que vamos a usar va a ser \textbf{request-router}, se escoge este ya que nos permite tener varias solicitudes al mismo tiempo, teniendo en cuenta que el request en este caso serían los clientes y el router seria el gestor de transacciones, estos se comunican mediante sockets y se le establece a cada solicitud un identificador único para su correcta respuesta.
+	El modelo asíncrono se va a usar cuando los clientes quieran cancelar una reservación, es decir, entre el gestor de transacciones y el servicio de cancelación, el gestor acepta la cancelación y le da una respuesta inmediata al cliente; se va a realizar un patrón push/pull mediante pipeline ya que este incorpora un balanceador de cargas round robin el cual nos va a ayudar más adelante para la escalabilidad.
+	
+	\subsection{Modelo de Fallos}
+	\label{sec:models_fail}
+	Como se debe esperar que el gestor de transacciones o el RMC (Servicio que procesa reservas, modificaciones y consultas) fallen, planteamos un fallo de tipo fail-stop en donde un proceso falla pero los demás se dan cuenta del fallo, esto supone un problema grave ya que se requiere garantizar transparencia con los clientes dado que falle uno de los servicios más importantes como el gestor de transacciones o un servicio que hace varias funciones como lo es el RMC. En el peor de los casos el GT o el RMC presentarian un crash, sin embargo más adelante se verá nuestra propuesta para tratar la tolerancia a estos fallos.
+	
+	
+	
+	\subsection{Modelo de Seguridad}
+	\label{sec:models_secu}
+	La seguridad es un pilar importante en nuestro sistema; la confidencialidad e integridad son vulnerables debido a que se utiliza la libreria ZeroMQ por lo que si este canal no es asegurado los mensajes viajarian en texto plano permitiendo que un atacante pueda interceptar los datos. La disponibilidad se puede llegar a ver afectada si el gestor de transacciones recibe muchas DoS, lo cual podría llegar a saturarlo.
+	
+	\section{Diseño del Sistema}
+	\label{sec:base_arch}
+	% Detail the entire system from Figure 1 using the base architecture.
+	\subsection{Diagrama de Componentes}
+	\begin{figure}[H]
+		\includegraphics[width=1\textwidth]{Images/Diagrama de componentes.png}
+		\caption{Diagrama de componentes}
+		\label{fig:mi_imagen}
+	\end{figure}
+	Este diagrama busca obtener una visualización más acertada sobre como trabajan los componentes entre sí y cuales son los protocolos que se usan para dicha comunicación.
+	La mayor parte de las comunicaciones se hacen con el patrón REQ/ROUTER porque nos pareció una solución adecuada para este tipo de sistema. Por otro lado está la comunicación PULL/PUSH la cual se usa para mensajes asíncronos mediante un pipeline.
+	Una última anotación es decidimos agregar un servicio llamado servicio de persistencia el cual se encarga de recibir las solicitudes de los servicios de cancelación y RMC para así poder interactuar con la base de datos, este es el único que lo puede hacer conectándose por TCP/IP.
+	
+	\subsection{Diagrama de Despliegue}
+	% Insert Component diagram here.
+	\subsection{Diagrama de Clases}
+	% Insert Class diagram here.
+	\subsection{Diagrama de Secuencias}
+	% Insert Sequence diagram here for synchronous (ZeroMQ Request/Reply) and asynchronous (ZeroMQ Pub/Sub or Push/Pull) patterns.
+	
+	\section{Estrategia de Escalabilidad y Tolerancia a Fallos}
+	\label{sec:scalability}
+	La estrategia de escalabilidad se fundamenta en hacer escalamiento horizontal en la capa que lo requiera, donde cada maquina sera una capa distina y cada capa tendra un contenedor por proceso. Para los servicios de negocio sin estado como RMC y Cancelaciones, la capacidad se incrementa instanciando dinámicamente nuevos contenedores cuyo tráfico es distribuido por el Gestor de Transacciones mediante el patron ROUTER-DEALER con ZeroMQ. Por su parte, la capa de persistencia con estado en PostgreSQL se escala mediante un esquema de replicación de base de datos, garantizando un alto rendimiento en transacciones por minuto, aislamiento de recursos y alta disponibilidad.
+	
+	El manejo de fallos usara dos estrategias, para los fallos fail-stop en RMC se implementaran time outs pues estos confirman si el proceso murio o no, en cancelaciones por otro lado se esperara que el proceso envie "señales de vida" cada cierto tiempo pues dependiendo de esa señal el detector determinara si el proceso se considera como muerto o no. En caso de que un proceso en especifico falle este sera reemplazado por una copia del mismo para garantizar la transparencia de fallos.
+	
+	
+	\section{Protocolo de Pruebas de la entrega final}
+	
+	
+	\section{Estrategia de obtención de métricas y carga de los clientes}
+	\label{sec:testing}
+	% Define the testing protocol for the final delivery.
+	% Specify tools/methods for client load generation (Locust or JMeter).
+	La herramienta que vamos a usar es \textbf{Locust} ya que permite ver los tiempos de respuesta y los errores en tiempo real, además su lenguaje es en python y se puede ejecutar en varias máquinas, lo que nos asegura medir de forma óptima la escalabilidad.
+	
 \end{document}
