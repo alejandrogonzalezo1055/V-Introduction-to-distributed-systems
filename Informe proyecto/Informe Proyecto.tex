@@ -65,7 +65,7 @@ A continuación se explican los modelos que usa el sistema de reservas.
 \subsection{Modelo Arquitectónico}
 \label{sec:models_arch}
 
-El sistema tendrá un modelo de 3 capas, como se observa en (\cref{fig:model_capas}).
+De acuerdo con la arquitectura del software que se nos dio a diseñar e implementar, observamos un \textbf{estilo arquitectónico de capas}:(\cref{fig:model_capas}).
 
 \begin{figure}[htbp]
 	\includegraphics[width=0.7\textwidth]{Images/Modelo de capas sistema.png}
@@ -75,24 +75,27 @@ El sistema tendrá un modelo de 3 capas, como se observa en (\cref{fig:model_cap
 
 La \textbf{capa de consumidores} se encarga de pasarle solicitudes y peticiones de los clientes al gestor de transacciones. Cada cliente puede hacer peticiones de reservas, modificación, consulta, y cancelación de reserva.
 
-La \textbf{capa de servicios} tiene dos procesos distintos. El \textit{gestor de transacciones} enruta las peticiones del sistema a su canal sincrono que se encarga de las solicitudes de reserva, modificación, y consultas mediante el proceso Reservas/Modificaciones/Consultas y se comunicara con las demas capas mediantes el patrón REQ/REP; o al canal asincrono, que usando el servicio de cancelación de reservas y mediante el patrón PUB/SUB se encarga de las solicitudes de cancelación pues estas no requieren notificar al cliente.
+La \textbf{capa de servicios} tiene dos procesos distintos. El \textit{gestor de transacciones} enruta las peticiones del sistema a su canal sincrono que se encarga de las solicitudes de reserva, modificación, y consultas mediante el proceso Reservas/Modificaciones/Consultas y se comunicara con las demas capas mediantes el patrón REQ/ROUTER; o al canal asincrono, que usando el servicio de cancelación de reservas y mediante el patrón PUSH/PULL se encarga de las solicitudes de cancelación pues estas no requieren notificar al cliente.
 
-Finalmente la \textbf{capa de almacenamiento} se encargara de garantizar la persistencia de las reservas de todo el sistema, esto lo hara mediante operaciones CRUD hacia una base de datos Postgrace SQL. 
+Finalmente la \textbf{capa de almacenamiento} se encargara de garantizar la persistencia de las reservas de todo el sistema, esto lo hara mediante operaciones CRUD hacia una base de datos Postgress SQL.
 
 
 \subsection{Modelo de Interacción}
 \label{sec:models_exch}
 
-El sistema, como se menciona en \cref{sec:models_arch}, manejara peticiones de forma sincrona y asincrona. El proceso RMC se controlara por medio de un proceso sincrono, pues la buena detección de errores ayuda a conservar la integridad de los datos. El sistema de cancelación no necesita saber si cada cliente recibió o no la notificación de su solicitud realizada, lo que contribuye a la mejora del rendimiento del sistema.
-
+EEn este proyecto se integran tanto modelos síncronos como asíncronos. 
+En cuanto al modelo síncrono, se utiliza cuando los clientes quieren realizar reservas, modificaciones o consultas, estas solicitudes son recibidas por el gestor de transacciones el cual las enruta hacia el servicio RMC, en donde este solicita y aguarda la respuesta de la capa de almacenamiento, hasta que no suceda todo este proceso el cliente no recibe una confirmación.El patrón de comunicación que vamos a usar va a ser \textbf{request-router}, se escoge este ya que nos permite tener varias solicitudes al mismo tiempo, teniendo en cuenta que el request en este caso serían los clientes y el router seria el gestor de transacciones, estos se comunican mediante sockets y se le establece a cada solicitud un identificador único para su correcta respuesta.
+El modelo asíncrono se va a usar cuando los clientes quieran cancelar una reservación, es decir, entre el gestor de transacciones y el servicio de cancelación, el gestor acepta la cancelación y le da una respuesta inmediata al cliente; se va a realizar un patrón push/pull mediante pipeline ya que este incorpora un balanceador de cargas round robin el cual nos va a ayudar más adelante para la escalabilidad.
 
 \subsection{Modelo de Fallos}
 \label{sec:models_fail}
+Como se debe esperar que el gestor de transacciones o el RMC (Servicio que procesa reservas, modificaciones y consultas) fallen, planteamos un fallo de tipo fail-stop en donde un proceso falla pero los demás se dan cuenta del fallo, esto supone un problema grave ya que se requiere garantizar transparencia con los clientes dado que falle uno de los servicios más importantes como el gestor de transacciones o un servicio que hace varias funciones como lo es el RMC, más adelante se verá nuestra propuesta para tratar la tolerancia a estos fallos.
 
 
 
 \subsection{Modelo de Seguridad}
 \label{sec:models_secu}
+La seguridad es un pilar importante en nuestro sistema; la confidencialidad e integridad son vulnerables debido a que se utiliza la libreria ZeroMQ por lo que si este canal no es asegurado los mensajes viajarian en texto plano permitiendo que un atacante pueda interceptar los datos. La disponibilidad se puede llegar a ver afectada si el gestor de transacciones recibe muchas DoS, lo cual podría llegar a saturarlo.
 
 \section{Diseño del Sistema}
 \label{sec:base_arch}
@@ -114,6 +117,7 @@ El sistema, como se menciona en \cref{sec:models_arch}, manejara peticiones de f
 \label{sec:testing}
 % Define the testing protocol for the final delivery.
 % Specify tools/methods for client load generation (Locust or JMeter).
+La herramienta que vamos a usar es \textbf{Locust} ya que permite ver los tiempos de respuesta y los errores en tiempo real, además su lenguaje es en python y se puede ejecutar en varias máquinas, lo que nos asegura medir de forma óptima la escalabilidad.
 % Detail the tools and strategies used to obtain the performance metrics (Throughput/TPM, Response Time).
 
 % ---------------------------------------------------------
