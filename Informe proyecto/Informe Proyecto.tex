@@ -66,12 +66,12 @@
 	\subsection{Modelo Arquitectónico}
 	\label{sec:models_arch}
 	
-	De acuerdo con la arquitectura del software que se nos dio a diseñar e implementar, observamos un \textbf{estilo arquitectónico de capas}: (\cref{fig:model_capas}).
+	De acuerdo con la arquitectura del software que se nos dio a diseñar e implementar, observamos un \textbf{estilo arquitectónico de capas}: (\cref{fig:layers_model}).
 	
 	\begin{figure}[H]
 		\includegraphics[width=0.7\textwidth]{Images/Modelo de capas sistema.png}
 		\caption{Modelo arquitectónico de 3 capas del sistema}
-		\label{fig:model_capas}
+		\label{fig:layers_model}
 	\end{figure}
 	
 	La \textbf{capa de consumidores} se encarga de pasarle solicitudes y peticiones de los clientes al gestor de transacciones. Cada cliente puede hacer peticiones de reservas, modificación, consulta, y cancelación de reserva.
@@ -106,9 +106,9 @@
 	
 	\subsection{Diagrama de Componentes}
 	\begin{figure}[H]
-		\includegraphics[width=1\textwidth]{Images/Diagrama de componentes.png}
-		\caption{Diagrama de componentes}
-		\label{fig:mi_imagen}
+		\includegraphics[width=1\textwidth]{Images/Diagrama de Componentes.png}
+		\caption{Diagrama de componentes del SRB}
+		\label{fig:comp_diagram}
 	\end{figure}
 	Este diagrama busca obtener una visualización más acertada sobre como trabajan los componentes entre sí y cuales son los protocolos que se usan para dicha comunicación.
 	La mayor parte de las comunicaciones se hacen con el patrón REQ/ROUTER porque nos pareció una solución adecuada para este tipo de sistema. Por otro lado está la comunicación PULL/PUSH la cual se usa para mensajes asíncronos mediante un pipeline.
@@ -117,8 +117,15 @@
 	\subsection{Diagrama de Despliegue}
 	% Insert Component diagram here.
 	\subsection{Diagrama de Clases}
+	
+	\begin{figure}[H]
+		\includegraphics[width=1\textwidth]{Images/Diagrama de clases.png}
+		\caption{Diagrama de clases del SRB}
+		\label{fig:class_diagram}
+	\end{figure}
+	
 	% Insert Class diagram here.
-	\subsection{Diagrama de Secuencias}
+	\subsection{Diagrama de Secuencia}
 	% Insert Sequence diagram here for synchronous (ZeroMQ Request/Reply) and asynchronous (ZeroMQ Pub/Sub or Push/Pull) patterns.
 	
 	\section{Estrategia de Escalabilidad y Tolerancia a Fallos}
