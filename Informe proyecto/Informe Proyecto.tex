@@ -115,7 +115,13 @@
 	Una última anotación es decidimos agregar un servicio llamado servicio de persistencia el cual se encarga de recibir las solicitudes de los servicios de cancelación y RMC para así poder interactuar con la base de datos, este es el único que lo puede hacer conectándose por TCP/IP.
 	
 	\subsection{Diagrama de Despliegue}
-	% Insert Component diagram here.
+	
+	\begin{figure}[H]
+		\includegraphics[width=1\textwidth]{Images/Diagrama de Despliegue.png}
+		\caption{Diagrama de Despliegue del SRB}
+		\label{fig:deploy_diagram}
+	\end{figure}
+	
 	\subsection{Diagrama de Clases}
 	
 	\begin{figure}[H]
@@ -126,7 +132,18 @@
 	
 	% Insert Class diagram here.
 	\subsection{Diagrama de Secuencia}
-	% Insert Sequence diagram here for synchronous (ZeroMQ Request/Reply) and asynchronous (ZeroMQ Pub/Sub or Push/Pull) patterns.
+	
+	\begin{figure}[H]
+		\includegraphics[width=1\textwidth]{Images/Diagrama de Secuencia - 1.png}
+		\caption{Diagrama de Secuencia del SRB}
+		\label{fig:seq_diagram1}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\includegraphics[width=1\textwidth]{Images/Diagrama de Secuencia - 2.png}
+		\caption{Diagrama de Secuencia del SRB}
+		\label{fig:seq_diagram2}
+	\end{figure}
 	
 	\section{Estrategia de Escalabilidad y Tolerancia a Fallos}
 	\label{sec:scalability}
