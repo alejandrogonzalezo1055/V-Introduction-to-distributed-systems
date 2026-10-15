@@ -47,7 +47,7 @@ class Respuesta(TypedDict):
 # funciones
 def crear_req(tipo, id_cliente, datos, uuID=''):
     peticion = None
-    if tipo in peticiones and id_cliente > 0 and uuID != '':
+    if tipo in peticiones and id_cliente > 0 and uuID == '':
         peticion: Peticion = {
             'uuid':str(uuid.uuid4()),
             'tipo':peticiones[tipo],
