@@ -5,7 +5,9 @@ import json
 # constantes
 peticiones = {
     'CO':'CONSULTA',
+    'CO_D':'CONSULTA_DISPONIBILIDAD',
     'R':'RESERVA',
+    'A_R':'AGREGAR_RESERVA',
     'M':'MODIFICACION',
     'CA':'CANCELACION',
     'N':'NOTIFICACION'
@@ -22,7 +24,8 @@ motivos_rechazo = {
     'S_C': 'SIN_CUPO',
     'N_E': 'NO_EXISTE',
     'D_I': 'DATO_INVALIDO',
-    'P_I':'PETICION_INVALIDA'
+    'P_I':'PETICION_INVALIDA',
+    'N_I': 'NO_IMPLEMENTADO'
 }
 
 meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
@@ -42,14 +45,21 @@ class Respuesta(TypedDict):
     datos: dict
 
 # funciones
-def crear_req(tipo, id_cliente, datos):
+def crear_req(tipo, id_cliente, datos, uuID=''):
     peticion = None
-    if tipo in peticiones and id_cliente > 0:
+    if tipo in peticiones and id_cliente > 0 and uuID != '':
         peticion: Peticion = {
             'uuid':str(uuid.uuid4()),
             'tipo':peticiones[tipo],
             'id_cliente':id_cliente,
             'datos':datos
+        }
+    else:
+        peticion: Peticion = {
+            'uuid': uuID,
+            'tipo': peticiones[tipo],
+            'id_cliente': id_cliente,
+            'datos': datos
         }
     return peticion
 

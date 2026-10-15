@@ -73,7 +73,7 @@ class Cliente:
             return respuesta
         else:
             # deberia enviarle la respuesta al cliente, no se como
-            return msjs.crear_rta('F', 'el mes para el que busca eventos no existe', {})
+            return msjs.crear_rta('F', 'N_E', {})
 
 
     def reservar_evento(self, fecha, id_evento=0, n_asientos=1):
