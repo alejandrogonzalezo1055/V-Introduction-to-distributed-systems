@@ -8,9 +8,9 @@
 \pgfplotsset{compat=1.18}
 \usepackage{hyperref}
 \hypersetup{
-	colorlinks=True,
+	colorlinks=true,
 	linkbordercolor=white,
-	citecolor=black
+	citecolor=black,
 	linkcolor=black
 }
 \usepackage{cleveref}
@@ -121,37 +121,49 @@
 		\caption{Diagrama de Despliegue del SRB}
 		\label{fig:deploy_diagram}
 	\end{figure}
+	La figura~\ref{fig:deploy_diagram} muestra la distribución del sistema en tres máquinas, una por capa. En la primera se ejecutan los clientes, desarrollados en Python con pyzmq, y Locust para generar carga. Cada cliente cuenta además con un receptor PULL para recibir el resultado de sus cancelaciones.
+
+    En la segunda máquina se ubican el Gestor de Transacciones, el servicio RMC y el servicio de Cancelación y Notificación. El gestor recibe las solicitudes y selecciona su destino: las consultas, reservas y modificaciones pasan al RMC, mientras que las cancelaciones se envían por PUSH/PULL para procesarlas sin mantener al cliente esperando el resultado final. La figura representa ROUTER/DEALER en la comunicación entre el gestor y el RMC.
+
+    La tercera máquina contiene el servicio de persistencia y PostgreSQL, al que se accede por el puerto 5432. El RMC y el servicio de cancelación solicitan los cambios a persistencia; los clientes no acceden directamente a la base. La notificación final vuelve desde cancelaciones al receptor del cliente, utilizando la dirección que este proporciona. Así, el diagrama permite identificar tanto la ubicación de los procesos como las conexiones necesarias entre las máquinas.
 	
 	\subsection{Diagrama de Clases}
 	
 	\begin{figure}[H]
-		\includegraphics[width=1\textwidth]{Images/Diagrama de clases.png}
+		\includegraphics[width=1\textwidth]{Images/Diagrama de Clases.png}
 		\caption{Diagrama de clases del SRB}
 		\label{fig:class_diagram}
 	\end{figure}
+	La figura~\ref{fig:class_diagram} organiza las entidades del negocio y las responsabilidades de los servicios. \textbf{Evento} identifica la actividad mediante su nombre y tipo; \textbf{Ocurrencia} representa una fecha concreta de esa actividad y registra su capacidad y puestos ocupados. Esta separación permite que un mismo evento se realice en distintas fechas, cada una con su propia disponibilidad. \textbf{Reserva} contiene el identificador, la fecha, el estado y la cantidad de puestos solicitados, mientras que \textbf{Cliente} identifica a quien realiza las peticiones.
+
+    En la capa de servicios, \textbf{GestorTransacciones} selecciona el canal de atención. \textbf{ServicioRMC} reúne las operaciones de creación, modificación y consulta, y \textbf{ServicioCancelación} recibe las solicitudes para eliminar una reserva. Ambos utilizan \textbf{ServicioPersistencia}, que concentra las operaciones sobre los datos y se comunica con \textbf{DataBase}. Las relaciones muestran qué entidades y servicios colaboran; no representan acceso directo de los clientes a PostgreSQL. El diagrama expresa el diseño lógico propuesto, y la consulta de eventos por mes se detalla en la secuencia siguiente.
 	
-	% Insert Class diagram here.
 	\subsection{Diagrama de Secuencia}
 	
 	\begin{figure}[H]
 		\includegraphics[width=1\textwidth]{Images/Diagrama de Secuencia - 1.png}
-		\caption{Diagrama de Secuencia del SRB}
+		\caption{Secuencia de consulta y reserva del SRB}
 		\label{fig:seq_diagram1}
 	\end{figure}
+	La figura~\ref{fig:seq_diagram1} se lee de arriba hacia abajo y presenta dos operaciones síncronas. En la \textbf{consulta}, el cliente indica el mes al gestor, este remite la petición al RMC y persistencia obtiene los eventos de PostgreSQL. La lista regresa por el mismo recorrido hasta el cliente.
+
+    En la \textbf{reserva}, el cliente envía su identificación, el evento y la cantidad de puestos. El RMC solicita la disponibilidad y, si existe cupo, pide a persistencia crear la reserva y actualizar la ocupación. El bloque de alternativas distingue la confirmación del rechazo por falta de asientos. La respuesta exitosa, que incluye el identificador de reserva, se devuelve después del \texttt{COMMIT}. Aunque la figura separa la consulta de disponibilidad de la escritura, la implementación deberá volver a comprobar el cupo dentro de la transacción para evitar que solicitudes simultáneas reserven los mismos puestos.
 	
 	\begin{figure}[H]
 		\includegraphics[width=1\textwidth]{Images/Diagrama de Secuencia - 2.png}
-		\caption{Diagrama de Secuencia del SRB}
+		\caption{Secuencia de modificación y cancelación del SRB}
 		\label{fig:seq_diagram2}
 	\end{figure}
+	La figura~\ref{fig:seq_diagram2} continúa con la \textbf{modificación}. El cliente identifica su reserva y el cambio solicitado; el RMC comprueba la disponibilidad mediante persistencia. Si el cambio es válido, se actualizan la reserva y la ocupación en una misma transacción. Si no es posible, se devuelve un rechazo y se conserva la reserva original. El cambio de fecha solo admite otra ocurrencia del mismo evento y mes, manteniendo la cantidad de puestos. Un evento con una sola ocurrencia sí permite modificar esa cantidad, aunque no cambiar de fecha.
+
+    En la \textbf{cancelación}, el cliente incluye la dirección donde recibirá la notificación. El gestor devuelve una aceptación inmediata y envía el trabajo al servicio de cancelación mediante PUSH/PULL. Este solicita a persistencia eliminar la reserva y liberar los asientos. Solo después de confirmar el cambio en PostgreSQL se notifica directamente al cliente. Por tanto, la aceptación inicial indica que la solicitud fue recibida; la notificación posterior confirma que la cancelación se hizo efectiva. El envío final debe dirigirse al receptor de ese cliente, evitando repartir las notificaciones entre clientes distintos.
 	
 	\section{Estrategia de Escalabilidad y Tolerancia a Fallos}
 	\label{sec:scalability}
-	La estrategia de escalabilidad se fundamenta en hacer escalamiento horizontal en la capa que lo requiera, donde cada maquina sera una capa distina y cada capa tendra un contenedor por proceso. Para los servicios de negocio sin estado como RMC y Cancelaciones, la capacidad se incrementa instanciando dinámicamente nuevos contenedores cuyo tráfico es distribuido por el Gestor de Transacciones mediante el patron ROUTER-DEALER con ZeroMQ. Por su parte, la capa de persistencia con estado en PostgreSQL se escala mediante un esquema de replicación de base de datos, garantizando un alto rendimiento en transacciones por minuto, aislamiento de recursos y alta disponibilidad.
+	La estrategia de escalabilidad se fundamenta en hacer escalamiento horizontal en la capa que lo requiera, donde cada maquina sera una capa distina y cada capa tendra un contenedor por proceso. Para los servicios de negocio sin estado como RMC y Cancelaciones, la capacidad se incrementa instanciando dinámicamente nuevos contenedores cuyo tráfico es distribuido por el Gestor de Transacciones mediante el patron ROUTER-DEALER con ZeroMQ. Por su parte, la capa de persistencia con estado en PostgreSQL se escala mediante un esquema de replicación de base de datos, garantizando alto rendimiento en transacciones por minuto, aislamiento de recursos y alta disponibilidad.
 	
-	El manejo de fallos usara dos estrategias, para los fallos fail-stop en RMC se implementaran time outs pues estos confirman si el proceso murio o no, en cancelaciones por otro lado se esperara que el proceso envie "señales de vida" cada cierto tiempo pues dependiendo de esa señal el detector determinara si el proceso se considera como muerto o no. En caso de que un proceso en especifico falle este sera reemplazado por una copia del mismo para garantizar la transparencia de fallos.
-	
-	
+	El manejo de fallos usara dos estrategias, para los fallos fail-stop en RMC se implementaran time outs, estos confirman si el proceso murio o no, en cancelaciones se esperara que el proceso envie "señales de vida" cada cierto tiempo pues dependiendo de esa señal el detector determinara si el proceso se considera como muerto o no. En caso de que un proceso especifico falle, sera reemplazado por una copia del mismo para garantizar la transparencia de fallos.
+
 	\section{Protocolo de Pruebas de la entrega final}
 	\label{sec:protocol}
     Se ejecutarán las siguientes pruebas sobre el sistema final. Cada caso registrará entradas, estado inicial, resultado obtenido y evidencia, para contrastarlos con el resultado esperado.
