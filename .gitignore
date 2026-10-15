@@ -32,7 +32,7 @@ _minted-*
 *.lot.bak
 
 # Datos sensibles
-.env
+#.env
 
 # ==========================================
 # Configuración y compilación de IDEs
