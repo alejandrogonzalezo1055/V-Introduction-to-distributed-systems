@@ -30,3 +30,54 @@ _minted-*
 *.toc.bak
 *.lof.bak
 *.lot.bak
+
+# Datos sensibles
+.env
+
+# ==========================================
+# Configuración y compilación de IDEs
+# ==========================================
+
+# JetBrains IDEs (CLion, IntelliJ IDEA, PyCharm, etc.)
+.idea/
+*.iws
+*.iml
+*.ipr
+cmake-build-*/
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Eclipse / NetBeans
+.settings/
+.buildpath
+.project
+nbproject/
+build/
+dist/
+
+# Python / Venv
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# C / C++ / Build outputs
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Archivos del sistema (Linux / macOS)
+.DS_Store
+.directory
+*~
