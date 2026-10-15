@@ -1,0 +1,22 @@
+name: Build LaTeX Document
+
+on:
+  push:
+    branches: [ "features-*" ]
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+        
+      - name: Compilar documento LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: Informe Proyecto.tex  
+          
+      - name: Subir PDF generado
+        uses: actions/upload-artifact@v4
+        with:
+          name: Documento-PDF
+          path: Informe Proyecto.pdf # 
