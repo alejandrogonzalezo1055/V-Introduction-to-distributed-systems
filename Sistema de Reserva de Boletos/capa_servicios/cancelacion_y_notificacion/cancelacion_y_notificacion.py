@@ -1,0 +1,3 @@
+class Cancelacion_y_notificacion:
+    def __init__(self):
+        ...
