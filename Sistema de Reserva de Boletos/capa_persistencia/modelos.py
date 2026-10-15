@@ -1,8 +1,3 @@
-"""Entidades del modelo del mundo mapeadas a tablas con SQLAlchemy ORM.
-
-Solo el proceso de Persistencia importa este archivo. Lo que viaja por
-ZeroMQ son diccionarios, nunca estos objetos.
-"""
 from datetime import date
 
 from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
@@ -26,9 +21,7 @@ class Evento(Base):
 class Ocurrencia(Base):
     __tablename__ = "ocurrencia"
     __table_args__ = (
-        # el RMC identifica una ocurrencia por (evento, fecha): no se puede repetir
         UniqueConstraint("evento_id", "fecha", name="uq_evento_fecha"),
-        # red de seguridad: la base rechaza cualquier sobreventa
         CheckConstraint("puestos_ocupados >= 0 AND puestos_ocupados <= capacidad", name="ck_cupo"),
     )
 

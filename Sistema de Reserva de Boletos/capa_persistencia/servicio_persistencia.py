@@ -8,9 +8,9 @@ from abc import ABC, abstractmethod
 from sqlalchemy import extract, func, select, update
 
 import comun.mensajes as msjs
-from capa_almacenamiento.conexion_bd import SessionLocal
-from capa_almacenamiento.modelos import Evento, Ocurrencia, Reserva
-from capa_almacenamiento.utilidades import escribir_fecha, leer_fecha, numero_mes
+from capa_persistencia.conexion_bd import SessionLocal
+from capa_persistencia.modelos import Evento, Ocurrencia, Reserva
+from capa_persistencia.utilidades import escribir_fecha, leer_fecha, numero_mes
 
 # Valores tomados del contrato, para no escribirlos a mano
 EXITO = msjs.estados_rta['E']
