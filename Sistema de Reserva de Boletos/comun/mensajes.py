@@ -1,4 +1,5 @@
 from typing import TypedDict
+from datetime import datetime
 
 # constantes
 peticiones = {
@@ -23,12 +24,14 @@ motivos_rechazo = {
     'P_I':'PETICION_INVALIDA'
 }
 
+meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
+
 # peticiones
 class Peticion(TypedDict):
     id: int
     tipo: str
     id_cliente: int
-    # el cliente debe enviar su ip en el msj de cancelacion
+    # el cliente debe enviar su ip en el msj de cancelacion?
     datos: dict
 
 class Respuesta(TypedDict):
@@ -59,3 +62,4 @@ def crear_rta(id, estado, motivo, datos):
             'datos':datos
         }
     return respuesta
+
