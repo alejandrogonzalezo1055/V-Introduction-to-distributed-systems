@@ -2,6 +2,8 @@ import json
 import zmq
 import time
 import random
+
+
 lista_meses = ["septiembre", "octubre", "noviembre"]
 dir_gestor="" 
 ID_cliente=1
