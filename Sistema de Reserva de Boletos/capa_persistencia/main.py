@@ -6,8 +6,8 @@ import zmq
 
 import comun.mensajes as msjs
 from comun.config import SP_PORT
-from capa_almacenamiento.conexion_bd import esperar_bd
-from capa_almacenamiento.servicio_persistencia import (
+from capa_persistencia.conexion_bd import esperar_bd
+from capa_persistencia.servicio_persistencia import (
     ERROR, PETICION_INVALIDA, DATO_INVALIDO, Servicio_persistencia, responder,
 )
 

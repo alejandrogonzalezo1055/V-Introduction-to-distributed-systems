@@ -1,26 +1,13 @@
-"""Borra la base, crea las tablas y carga los eventos desde un JSON.
-
-Uso (desde la raíz del proyecto):
-    python -m capa_almacenamiento.cargar_datos                       # usa datos/eventos.json
-    python -m capa_almacenamiento.cargar_datos datos/caso_profe.json # el caso del profesor
-
-Si datos/eventos.json no existe, se genera con lo que pide el enunciado:
-50 eventos en un mismo mes, 20 con dos ocurrencias, 100 puestos cada una.
-
-Formato del JSON (fechas con barras, como en el contrato):
-[{"id": "E1", "nombre": "Evento 1", "tipo_evento": "cultural",
-  "fechas": ["2026/11/01", "2026/11/15"]}, ...]
-"""
 import json
 import os
 import sys
 
 from sqlalchemy.orm import Session
 
-from capa_almacenamiento.conexion_bd import engine, esperar_bd
-from capa_almacenamiento.modelos import Base, Evento, Ocurrencia
-from capa_almacenamiento.servicio_persistencia import Servicio_persistencia
-from capa_almacenamiento.utilidades import leer_fecha
+from capa_persistencia.conexion_bd import engine, esperar_bd
+from capa_persistencia.modelos import Base, Evento, Ocurrencia
+from capa_persistencia.servicio_persistencia import Servicio_persistencia
+from capa_persistencia.utilidades import leer_fecha
 
 RUTA_POR_DEFECTO = os.path.join("datos", "eventos.json")
 CAPACIDAD = 100
