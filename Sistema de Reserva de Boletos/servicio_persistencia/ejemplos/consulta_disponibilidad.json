@@ -1,0 +1,7 @@
+{
+  "id": "consulta-cupo-001",
+  "operacion": "consulta",
+  "tipo": "disponibilidad",
+  "id_evento": "E1",
+  "ocurrencia": 1
+}
