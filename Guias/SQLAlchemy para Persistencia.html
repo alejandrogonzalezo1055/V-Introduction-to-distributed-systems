@@ -1,0 +1,1296 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>SQLAlchemy para Persistencia</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: cuaderno de laboratorio — índice fijo a la izquierda, módulos en columna de lectura; en móvil el índice pasa a una franja de chips arriba */
+:root{
+  --bg:#EDF0EF; --surface:#FFFFFF; --ink:#18201D; --muted:#56635E; --line:#D3DAD7;
+  --accent:#2C5D8A; --accent-soft:#E0E9F2; --sql:#985814;
+  --ok:#2C7A4A; --ok-soft:#E2F1E7; --bad:#B23A2F; --bad-soft:#F7E3E0; --warn:#9A6400; --warn-soft:#F6ECD6;
+  --code-bg:#F6F8F7; --code-ink:#1D2622;
+  --tk-kw:#7A3D9C; --tk-str:#2C7A4A; --tk-com:#7B8883; --tk-num:#A8551A; --tk-cls:#2C5D8A; --tk-fn:#1C6C76;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101513; --surface:#171E1B; --ink:#E2E9E6; --muted:#98A6A0; --line:#2A3530;
+    --accent:#88B5DF; --accent-soft:#1C2A37; --sql:#E3A35F;
+    --ok:#6FC28F; --ok-soft:#173023; --bad:#F2847A; --bad-soft:#3A1D1A; --warn:#E6B24B; --warn-soft:#352914;
+    --code-bg:#0C110F; --code-ink:#DCE5E1;
+    --tk-kw:#C99DE8; --tk-str:#90D3A0; --tk-com:#6E7D76; --tk-num:#F1A96C; --tk-cls:#88B5DF; --tk-fn:#71C7D0;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101513; --surface:#171E1B; --ink:#E2E9E6; --muted:#98A6A0; --line:#2A3530;
+  --accent:#88B5DF; --accent-soft:#1C2A37; --sql:#E3A35F;
+  --ok:#6FC28F; --ok-soft:#173023; --bad:#F2847A; --bad-soft:#3A1D1A; --warn:#E6B24B; --warn-soft:#352914;
+  --code-bg:#0C110F; --code-ink:#DCE5E1;
+  --tk-kw:#C99DE8; --tk-str:#90D3A0; --tk-com:#6E7D76; --tk-num:#F1A96C; --tk-cls:#88B5DF; --tk-fn:#71C7D0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.7rem;font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:.05em .35em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.shell{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;padding-block:32px 80px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top, 0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:14px}
+.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--muted);padding:5px 8px;border-radius:6px;font-size:.9rem;line-height:1.35}
+.toc a .n{font-family:var(--f-mono);font-size:.75rem;min-width:1.6em;font-variant-numeric:tabular-nums}
+.toc a:hover{background:var(--surface);color:var(--ink)}
+.toc a.active{background:var(--accent-soft);color:var(--ink)}
+.toc a.done .n{color:var(--ok)}
+.toc a.done .n::after{content:" ✓"}
+.prog{display:flex;flex-direction:column;gap:6px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.prog span{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+main{min-width:0;display:flex;flex-direction:column;gap:64px}
+.hero{display:flex;flex-direction:column;gap:18px;max-width:760px}
+.lede{font-size:1.12rem;color:var(--muted);max-width:62ch}
+.stack{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.layer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px}
+.layer b{font-family:var(--f-display);font-size:1rem}
+.layer small{color:var(--muted);display:block;font-size:.85rem}
+.layer .tag{font-family:var(--f-mono);font-size:.72rem;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.layer.orm{border-color:var(--accent);background:var(--accent-soft)}
+.layer.core{border-left:4px solid var(--accent)}
+.layer.db{border-style:dashed}
+.arrow{font-family:var(--f-mono);color:var(--muted);font-size:.8rem;padding-left:18px}
+section.mod{display:flex;flex-direction:column;gap:18px;max-width:780px;scroll-margin-top:24px}
+.mod-head{display:flex;flex-direction:column;gap:6px;border-top:2px solid var(--ink);padding-top:14px}
+.mod-head .eyebrow b{color:var(--accent);font-weight:600}
+.mod p,.mod li{max-width:68ch}
+.mod ul,.mod ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.done-btn{align-self:flex-start;border:1px solid var(--line);background:var(--surface);padding:7px 14px;border-radius:99px;cursor:pointer;font-size:.88rem}
+.done-btn[aria-pressed="true"]{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.code{border:1px solid var(--line);border-radius:8px;background:var(--code-bg);overflow:hidden;min-width:0}
+.code-top{display:flex;justify-content:space-between;align-items:center;padding:6px 10px 6px 14px;border-bottom:1px solid var(--line);gap:8px}
+.code-top span{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.copy{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:.78rem;cursor:pointer}
+.code pre{margin:0;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:.84rem;line-height:1.55;color:var(--code-ink);tab-size:4}
+.tk-kw{color:var(--tk-kw);font-weight:600}.tk-str{color:var(--tk-str)}.tk-com{color:var(--tk-com);font-style:italic}
+.tk-num{color:var(--tk-num)}.tk-cls{color:var(--tk-cls)}.tk-fn{color:var(--tk-fn)}
+.note{border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);background:var(--surface)}
+.note.warn{background:var(--warn-soft);border-color:transparent}
+.note.bad{background:var(--bad-soft);border-color:transparent}
+.note.ok{background:var(--ok-soft);border-color:transparent}
+.note .eyebrow{color:inherit;opacity:.8}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.panel{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.field select,.field input[type=range]{min-width:140px}
+select{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 8px}
+.chk{display:flex;gap:8px;align-items:center;font-size:.9rem;padding-bottom:6px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 14px;cursor:pointer;font-size:.88rem}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--surface);border-radius:6px;padding:7px 14px;cursor:pointer;font-size:.9rem;font-weight:500}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.split{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.split .code pre{font-size:.78rem}
+.split h4{margin:0;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.split > div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sim-state{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg)}
+.stat small{display:block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat b{font-family:var(--f-display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.timeline{display:flex;flex-direction:column;gap:8px}
+.lanes-head,.step{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.lanes-head div{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.cell{border-radius:8px;padding:8px 10px;font-size:.85rem;min-width:0}
+.cell.on{border:1px solid var(--line);background:var(--bg)}
+.cell.on.A{border-left:4px solid var(--accent)}
+.cell.on.B{border-left:4px solid var(--sql)}
+.cell pre{margin:4px 0 0;font-family:var(--f-mono);font-size:.76rem;white-space:pre-wrap;word-break:break-word;color:var(--code-ink)}
+.cell .why{color:var(--muted);display:block}
+.cell.wait{border:1px dashed var(--warn);color:var(--warn)}
+.verdict{border-radius:8px;padding:12px 16px}
+.verdict.good{background:var(--ok-soft);color:var(--ink);border-left:4px solid var(--ok)}
+.verdict.badv{background:var(--bad-soft);color:var(--ink);border-left:4px solid var(--bad)}
+.qcount{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.qbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:6px}
+.qbar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.qbar.hot i{background:var(--bad)}
+.states{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.states button{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:var(--f-mono);font-size:.82rem}
+.states button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.states .sep{color:var(--muted);font-family:var(--f-mono)}
+details{border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+details > summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style-position:inside}
+details[open] > summary{border-bottom:1px solid var(--line)}
+details .body{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.err-grid{display:flex;flex-direction:column;gap:8px}
+.err-grid dl{margin:0;display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:4px 12px;font-size:.92rem}
+.err-grid dt{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.err-grid dd{margin:0}
+.quiz{display:flex;flex-direction:column;gap:14px}
+.q{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.q .opts{display:flex;flex-direction:column;gap:6px}
+.q label{display:flex;gap:10px;align-items:flex-start;padding:7px 10px;border-radius:6px;border:1px solid transparent;cursor:pointer;font-size:.94rem}
+.q label:hover{background:var(--bg)}
+.q label.right{border-color:var(--ok);background:var(--ok-soft)}
+.q label.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.q .fb{font-size:.92rem;color:var(--muted)}
+.score{font-family:var(--f-display);font-size:1.3rem;font-variant-numeric:tabular-nums}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.flow .box{flex:1 1 130px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px;font-size:.85rem;min-width:0}
+.flow .box b{display:block;font-family:var(--f-display)}
+.flow .box small{color:var(--muted)}
+.flow .box.mine{border-color:var(--accent);background:var(--accent-soft)}
+.flow .lnk{align-self:center;font-family:var(--f-mono);font-size:.72rem;color:var(--muted);text-align:center;flex:0 0 auto}
+footer{max-width:780px;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:8px}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:28px;padding-block:0 60px}
+  nav.toc{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);
+    margin-left:calc(-1 * max(16px, env(safe-area-inset-left, 0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+    padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));gap:8px}
+  .toc ol{flex-direction:row;overflow-x:auto;gap:4px;scrollbar-width:none}
+  .toc a{white-space:nowrap;border:1px solid var(--line);background:var(--surface)}
+  .toc .eyebrow{display:none}
+  .split{grid-template-columns:minmax(0,1fr)}
+  .sim-state{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .qcount{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<div class="shell">
+  <nav class="toc" aria-label="Módulos">
+    <div class="eyebrow">Módulos</div>
+    <ol id="toc"></ol>
+    <div class="prog"><div class="bar"><i id="progbar"></i></div><span id="progtxt"></span></div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Guía práctica · SQLAlchemy 2.x · PostgreSQL en Docker · SRB</div>
+      <h1>SQLAlchemy desde cero para la capa de Persistencia</h1>
+      <p class="lede">Levantan PostgreSQL en un contenedor, aprenden Core y ORM con las tablas del SRB (eventos, ocurrencias y reservas) y terminan sabiendo responder exactamente lo que el RMC espera, sin sobrevender asientos.</p>
+      <div class="stack" aria-label="Capas entre su código y los datos">
+        <div class="layer orm"><div><b>ORM</b><small>Clases de Python ↔ tablas. Session, relaciones, objetos.</small></div><span class="tag">≈ JPA / Hibernate</span></div>
+        <div class="arrow">↓ todo lo que hace el ORM se traduce a sentencias de Core</div>
+        <div class="layer core"><div><b>Core</b><small>Table, select(), insert(), update(). SQL escrito con objetos de Python.</small></div><span class="tag">≈ JdbcTemplate</span></div>
+        <div class="arrow">↓</div>
+        <div class="layer"><div><b>Engine + pool de conexiones</b><small>Uno por proceso. Reparte conexiones a quien las pida.</small></div><span class="tag">create_engine()</span></div>
+        <div class="arrow">↓</div>
+        <div class="layer"><div><b>Driver: psycopg 3</b><small>Habla el protocolo de red de PostgreSQL.</small></div><span class="tag">pip</span></div>
+        <div class="arrow">↓ TCP, localhost:5432</div>
+        <div class="layer db"><div><b>PostgreSQL 16 en un contenedor Docker</b><small>Guarda los datos, aplica restricciones y bloqueos. Los datos viven en un volumen.</small></div><span class="tag">docker compose</span></div>
+      </div>
+    </header>
+
+    <!-- 0 -->
+    <section class="mod" id="m0" data-t="PostgreSQL en Docker">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 0</b> · Infraestructura</div><h2>PostgreSQL en un contenedor</h2></div>
+      <p>Un contenedor trae PostgreSQL ya instalado y aislado del sistema. Lo levantan y lo borran con un comando, y todos en el equipo tienen exactamente la misma versión.</p>
+      <h3>1. Instalar Docker (Ubuntu 22.04 o superior)</h3>
+      <div class="code" data-k="docker_install" data-lang="sh"></div>
+      <div class="note warn"><div class="eyebrow">En la VM de la universidad</div><p>Instalar Docker requiere <code>sudo</code>. Prueben pronto si la VM de almacenamiento lo permite. Si no, el plan B es instalar PostgreSQL directo con <code>apt</code>; el código de SQLAlchemy no cambia.</p></div>
+      <h3>2. Describir el contenedor: <code>compose.yaml</code></h3>
+      <p>Pónganlo en la raíz del proyecto, junto al <code>.env</code>.</p>
+      <div class="code" data-k="compose" data-lang="sh"></div>
+      <ul>
+        <li><b><code>127.0.0.1:5432:5432</code></b> publica el puerto solo para la misma máquina. Persistencia y PostgreSQL viven en la misma VM, así que no hace falta abrirlo a la red.</li>
+        <li><b>El volumen <code>pgdata</code></b> guarda los datos fuera del contenedor. Si borran el contenedor, los datos siguen ahí.</li>
+        <li><b>El <code>healthcheck</code></b> le dice a Docker cuándo PostgreSQL ya acepta conexiones. Arrancar tarda unos segundos.</li>
+      </ul>
+      <h3>3. Comandos del día a día</h3>
+      <div class="code" data-k="docker_cmds" data-lang="sh"></div>
+      <h3>4. Mirar la base por dentro</h3>
+      <div class="code" data-k="psql" data-lang="sql"></div>
+      <div class="note bad"><div class="eyebrow">La trampa más común</div><p>Las variables <code>POSTGRES_USER</code>, <code>POSTGRES_PASSWORD</code> y <code>POSTGRES_DB</code> solo se aplican la <b>primera vez</b>, cuando el volumen está vacío. Si después cambian la contraseña en el archivo, el contenedor sigue con la vieja y verán <code>password authentication failed</code>. Solución: <code>docker compose down -v</code> (borra los datos) y volver a levantar.</p></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 1 -->
+    <section class="mod" id="m1" data-t="Entorno de Python">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 1</b> · 10 min</div><h2>Entorno de Python y primera conexión</h2></div>
+      <div class="code" data-k="venv" data-lang="sh"></div>
+      <p>En el <code>.env</code> del proyecto, la URL de la base. Los datos coinciden con los del <code>compose.yaml</code>:</p>
+      <div class="code" data-k="env" data-lang="sh"></div>
+      <p>Prueben la conexión. Si imprime la versión de PostgreSQL, todo está listo:</p>
+      <div class="code" data-k="probar" data-lang="py"></div>
+      <ul>
+        <li><b><code>postgresql+psycopg://</code></b> usa psycopg 3. Si la URL dice solo <code>postgresql://</code>, SQLAlchemy busca psycopg2 y falla.</li>
+        <li><b><code>echo=True</code></b> imprime cada SQL que se envía. Déjenlo encendido mientras aprenden.</li>
+      </ul>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 2 -->
+    <section class="mod" id="m2" data-t="Cómo se organiza">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 2</b> · Conceptos</div><h2>Cómo se organiza SQLAlchemy</h2></div>
+      <p>Cuatro piezas aparecen en todo el código.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Pieza</th><th>Qué es</th><th>Cuántas crear</th></tr></thead>
+        <tbody>
+          <tr><td><code>Engine</code></td><td>Punto de acceso a la base, con su pool de conexiones.</td><td>Una por proceso, al arrancar.</td></tr>
+          <tr><td><code>Connection</code></td><td>Una conexión prestada del pool. Se usa en Core.</td><td>Una por operación, dentro de un <code>with</code>.</td></tr>
+          <tr><td><code>Session</code></td><td>Una conexión más el seguimiento de objetos. Se usa en el ORM.</td><td>Una por petición, dentro de un <code>with</code>.</td></tr>
+          <tr><td><code>MetaData</code></td><td>El catálogo de tablas. Sirve para crearlas y borrarlas.</td><td>Una para todo el esquema.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>¿Core u ORM?</h3>
+      <ul>
+        <li><b>Core</b> es SQL con sintaxis de Python. Ves exactamente qué se ejecuta y trabajas con filas.</li>
+        <li><b>ORM</b> mapea clases a tablas. Trabajas con objetos y la <code>Session</code> decide cuándo escribir.</li>
+        <li>Se pueden mezclar: dentro de una <code>Session</code> se ejecutan sentencias de Core. Es lo que conviene para reservar.</li>
+      </ul>
+      <p>Escojan un estilo para Persistencia y úsenlo en todo el servicio. Esta guía enseña ambos para que decidan con criterio.</p>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 3 -->
+    <section class="mod" id="m3" data-t="Core · Tablas">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 3</b> · Core</div><h2>Definir las tablas del SRB</h2></div>
+      <p>Un evento tiene una o dos ocurrencias, y cada ocurrencia lleva su propio cupo. Los nombres de columna siguen su diagrama de clases.</p>
+      <div class="code" data-k="core_tables" data-lang="py"></div>
+      <p>Para <code>ocurrencia</code>, <code>create_all</code> envía algo parecido a esto (con <code>echo=True</code> lo ven exacto):</p>
+      <div class="code" data-k="core_ddl" data-lang="sql"></div>
+      <ul>
+        <li>Las columnas se acceden con <code>.c</code>: <code>ocurrencia.c.fecha</code>.</li>
+        <li><b><code>UniqueConstraint("evento_id", "fecha")</code></b>: el RMC identifica una ocurrencia por evento y fecha, así que esa pareja no se puede repetir.</li>
+        <li><code>create_all</code> crea las tablas que faltan y <b>no modifica</b> las existentes. Si cambian una columna, vuelvan a correr la carga con <code>drop_all</code>.</li>
+      </ul>
+      <div class="note ok"><div class="eyebrow">Por qué el CHECK</div><p>La restricción <code>ck_cupo</code> hace que PostgreSQL rechace cualquier escritura que deje más puestos ocupados que la capacidad. Aunque el código tenga un error, la base no permite sobreventa.</p></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 4 -->
+    <section class="mod" id="m4" data-t="Core · Insertar y consultar">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 4</b> · Core</div><h2>Insertar y consultar</h2></div>
+      <p>Las sentencias se construyen con <code>insert()</code> y <code>select()</code> y se ejecutan sobre una conexión. Una lista de diccionarios inserta varias filas de una vez.</p>
+      <div class="code" data-k="core_insert" data-lang="py"></div>
+      <div class="code" data-k="core_select" data-lang="py"></div>
+      <h3>Constructor de consultas: eventos del mes</h3>
+      <p>Es la consulta que pide la operación <code>CONSULTA</code>. Cambien los filtros y miren el código Core, el SQL y el resultado.</p>
+      <div class="panel">
+        <div class="controls">
+          <label class="field" for="qb-mes">Mes (como lo envía el cliente)
+            <select id="qb-mes"><option value="10">"octubre"</option><option value="11" selected>"noviembre"</option><option value="12">"diciembre"</option></select>
+          </label>
+          <label class="field" for="qb-tipo">Tipo de evento
+            <select id="qb-tipo"><option value="">Todos</option><option value="cultural">cultural</option><option value="deportivo">deportivo</option></select>
+          </label>
+          <label class="field" for="qb-orden">Orden
+            <select id="qb-orden"><option value="fecha">Por fecha</option><option value="libres">Más puestos libres primero</option></select>
+          </label>
+          <label class="chk" for="qb-cupo"><input type="checkbox" id="qb-cupo"> Solo con cupo</label>
+        </div>
+        <div class="code" id="qb-core" data-lang="py"></div>
+        <div class="code" id="qb-sql" data-lang="sql"></div>
+        <div class="eyebrow">Resultado con datos de ejemplo</div>
+        <div class="tbl"><table><thead><tr><th>id_evento</th><th>nombre</th><th>fecha</th><th class="num">libres</th></tr></thead><tbody id="qb-out"></tbody></table></div>
+      </div>
+      <h3>SQL escrito a mano con <code>text()</code></h3>
+      <div class="code" data-k="core_text" data-lang="py"></div>
+      <div class="note bad"><div class="eyebrow">Nunca</div><p>No armen SQL con f-strings ni concatenación. Pasen los valores como parámetros y el driver se encarga de escaparlos.</p></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 5 -->
+    <section class="mod" id="m5" data-t="Core · Actualizar y transacciones">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 5</b> · Core</div><h2>Actualizar, borrar y transacciones</h2></div>
+      <p>En SQLAlchemy 2.x nada se guarda sin commit. Hay dos formas de manejarlo:</p>
+      <div class="code" data-k="core_tx" data-lang="py"></div>
+      <p>La operación más importante del SRB es reservar sin sobrevender. PostgreSQL hace la suma y la verificación en una sola sentencia, y <code>rowcount</code> dice si hubo cupo.</p>
+      <div class="code" data-k="core_reservar" data-lang="py"></div>
+      <ul>
+        <li><code>.returning(reserva.c.id)</code> devuelve el id generado. Funciona en PostgreSQL.</li>
+        <li>El <code>return</code> dentro de <code>engine.begin()</code> sale del bloque normalmente, así que hace commit. Una excepción haría rollback.</li>
+      </ul>
+      <div class="code" data-k="core_delete" data-lang="py"></div>
+      <div class="note"><div class="eyebrow">Decisión de diseño</div><p>Para cancelar (segunda entrega) pueden borrar la fila o poner <code>estado = False</code>. Marcar conserva el historial, y eso ayuda a mostrar el estado de la BD en la sustentación.</p></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 6 -->
+    <section class="mod" id="m6" data-t="ORM · Mapear clases">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 6</b> · ORM</div><h2>Mapear clases a tablas</h2></div>
+      <p>Las mismas tres tablas, ahora como clases. El tipo de cada atributo va en la anotación <code>Mapped[...]</code>; los detalles, en <code>mapped_column()</code>.</p>
+      <div class="code" data-k="orm_models" data-lang="py"></div>
+      <h3>Si vienen de Spring</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Spring / JPA</th><th>SQLAlchemy ORM</th></tr></thead>
+        <tbody>
+          <tr><td><code>@Entity</code></td><td>Clase que hereda de <code>Base</code></td></tr>
+          <tr><td><code>@Table(name=…)</code></td><td><code>__tablename__</code></td></tr>
+          <tr><td><code>@Id</code>, <code>@Column</code></td><td><code>mapped_column(primary_key=True)</code></td></tr>
+          <tr><td><code>@ManyToOne</code> / <code>@OneToMany</code></td><td><code>ForeignKey</code> + <code>relationship()</code></td></tr>
+          <tr><td><code>@Transactional</code></td><td><code>with session.begin():</code></td></tr>
+          <tr><td><code>EntityManager</code> / repositorios</td><td><code>Session</code> (sin métodos mágicos tipo <code>findByFecha</code>)</td></tr>
+          <tr><td><code>ddl-auto=create</code></td><td><code>Base.metadata.create_all(engine)</code></td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li><code>Mapped[str]</code> genera <code>NOT NULL</code>. Para una columna opcional, <code>Mapped[str | None]</code>.</li>
+        <li><code>back_populates</code> conecta los dos lados de la relación, como <code>mappedBy</code> en JPA.</li>
+      </ul>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 7 -->
+    <section class="mod" id="m7" data-t="ORM · Session y CRUD">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 7</b> · ORM</div><h2>La Session y el CRUD</h2></div>
+      <p>La <code>Session</code> lleva la cuenta de los objetos que crean o cargan, y al hacer commit escribe los cambios. Toquen cada estado para ver qué significa.</p>
+      <div class="states" id="states">
+        <button type="button" data-s="transient" aria-pressed="true">transient</button><span class="sep">→ add()</span>
+        <button type="button" data-s="pending" aria-pressed="false">pending</button><span class="sep">→ flush</span>
+        <button type="button" data-s="persistent" aria-pressed="false">persistent</button><span class="sep">→ close()</span>
+        <button type="button" data-s="detached" aria-pressed="false">detached</button>
+      </div>
+      <div class="note" id="state-desc"></div>
+      <h3>Crear</h3>
+      <div class="code" data-k="orm_create" data-lang="py"></div>
+      <h3>Leer</h3>
+      <div class="code" data-k="orm_read" data-lang="py"></div>
+      <ul>
+        <li><code>session.scalars(...)</code> devuelve objetos. <code>session.execute(...)</code> devuelve filas con varias columnas.</li>
+        <li><code>.all()</code> da una lista, <code>.first()</code> el primero o <code>None</code>, y <code>.one()</code> exige exactamente uno.</li>
+      </ul>
+      <h3>Modificar y borrar</h3>
+      <div class="code" data-k="orm_update" data-lang="py"></div>
+      <div class="note bad"><div class="eyebrow">Trampa con concurrencia</div><p>Leer un valor, sumarle en Python y guardarlo funciona con un solo cliente y falla con varios. Para contadores como <code>puestos_ocupados</code>, dejen que la base haga la suma.</p></div>
+      <div class="code" data-k="orm_trap" data-lang="py"></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 8 -->
+    <section class="mod" id="m8" data-t="ORM · Relaciones y carga">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 8</b> · ORM</div><h2>Relaciones y cuándo se cargan</h2></div>
+      <p>Por defecto, <code>evento.ocurrencias</code> no se carga hasta que se toca. Dentro de un ciclo eso dispara una consulta por cada evento: el problema N+1.</p>
+      <div class="code" data-k="orm_lazy" data-lang="py"></div>
+      <div class="panel">
+        <label class="field" for="nplus">Eventos que recorren: <b id="nplus-v">50</b></label>
+        <input type="range" id="nplus" min="1" max="50" value="50">
+        <div class="qcount" id="qcount"></div>
+        <p style="font-size:.88rem;color:var(--muted)">Con 50 eventos cargados, una consulta del mes hecha con la carga por defecto hace decenas de viajes a la base. Eso se nota en los tiempos de respuesta de la Tabla 1.</p>
+      </div>
+      <h3>Objetos fuera de la Session</h3>
+      <div class="code" data-k="orm_detached" data-lang="py"></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 9 -->
+    <section class="mod" id="m9" data-t="Piedra Rosetta">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 9</b> · Comparador</div><h2>La misma operación en SQL, Core y ORM</h2></div>
+      <p>Escojan una operación del SRB y comparen las tres formas de escribirla.</p>
+      <div class="panel">
+        <div class="seg" id="ros-seg" role="group" aria-label="Operación"></div>
+        <p id="ros-note" style="font-size:.92rem;color:var(--muted)"></p>
+        <div class="split">
+          <div><h4>SQL</h4><div class="code" id="ros-sql" data-lang="sql"></div></div>
+          <div><h4>Core</h4><div class="code" id="ros-core" data-lang="py"></div></div>
+          <div><h4>ORM</h4><div class="code" id="ros-orm" data-lang="py"></div></div>
+        </div>
+      </div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 10 -->
+    <section class="mod" id="m10" data-t="Concurrencia">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 10</b> · Simulador</div><h2>Dos clientes, dos puestos libres</h2></div>
+      <p>La ocurrencia 7 tiene capacidad 100 y 98 puestos ocupados. Dos réplicas del RMC piden <code>AGREGAR_RESERVA</code> de 2 puestos al mismo tiempo. Solo una debería lograrlo. Escojan una estrategia y avancen paso a paso.</p>
+      <div class="panel">
+        <div class="seg" id="sim-seg" role="group" aria-label="Estrategia"></div>
+        <div class="sim-state">
+          <div class="stat"><small>puestos_ocupados</small><b id="st-oc">98</b></div>
+          <div class="stat"><small>puestos vendidos</small><b id="st-res">0</b></div>
+          <div class="stat"><small>fila bloqueada por</small><b id="st-lock">—</b></div>
+          <div class="stat"><small>paso</small><b id="st-step">0/0</b></div>
+        </div>
+        <div class="controls">
+          <button class="btn" type="button" id="sim-next">Siguiente paso</button>
+          <button class="btn ghost" type="button" id="sim-all">Ver todo</button>
+          <button class="btn ghost" type="button" id="sim-reset">Reiniciar</button>
+        </div>
+        <div class="timeline">
+          <div class="lanes-head"><div>Petición de la réplica RMC 1</div><div>Petición de la réplica RMC 2</div></div>
+          <div id="sim-steps" class="timeline"></div>
+        </div>
+        <div id="sim-verdict" hidden></div>
+      </div>
+      <div class="note warn"><div class="eyebrow">Cuándo les pasa</div><p>Con un solo RMC y una Persistencia que atiende de a una petición no verán este problema. Aparece cuando agreguen réplicas en la segunda entrega. Si escriben el UPDATE condicional desde ya, no tendrán que tocar este código después.</p></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 11 -->
+    <section class="mod" id="m11" data-t="El contrato del SRB">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 11</b> · Aplicación</div><h2>Responder lo que el RMC espera</h2></div>
+      <p>Solo Persistencia importa SQLAlchemy. Lo que viaja por ZeroMQ son diccionarios convertidos a JSON, nunca objetos del ORM. El formato lo fija <code>comun/mensajes.py</code>, y el RMC ya está programado para leerlo.</p>
+      <div class="flow">
+        <div class="box"><b>RMC</b><small>envía <code>{"tipo": "AGREGAR_RESERVA", …}</code></small></div>
+        <div class="lnk">JSON<br>ZeroMQ</div>
+        <div class="box mine"><b>main de Persistencia</b><small>REP bind :5558 · decodifica, despacha por tipo, codifica</small></div>
+        <div class="lnk">dict</div>
+        <div class="box mine"><b>Funciones de datos</b><small>Session + modelos; reciben y devuelven dicts</small></div>
+        <div class="lnk">TCP</div>
+        <div class="box"><b>PostgreSQL</b><small>contenedor, misma VM</small></div>
+      </div>
+      <h3>El contrato, operación por operación</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>tipo que llega</th><th>datos que llegan</th><th>respuesta</th></tr></thead>
+        <tbody>
+          <tr><td><code>CONSULTA</code></td><td><code>{"mes": "noviembre"}</code></td><td><code>EXITO</code> + lista de eventos (formato por acordar)</td></tr>
+          <tr><td><code>CONSULTA_DISPONIBILIDAD</code></td><td><code>{"id_evento": "E1", "fecha": "2026/11/07"}</code></td><td><code>EXITO</code> + <code>{"capacidad_total", "ocupacion"}</code>, o <code>FALLO</code> + <code>NO_EXISTE</code></td></tr>
+          <tr><td><code>AGREGAR_RESERVA</code></td><td><code>{"id_evento", "fecha", "n_asientos"}</code></td><td><code>EXITO</code> + <code>{"id_reserva"}</code>, o <code>FALLO</code> + <code>SIN_CUPO</code></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note bad"><div class="eyebrow">Tres detalles que fallan en silencio</div>
+        <ul>
+          <li>Las claves de la respuesta de disponibilidad son <code>capacidad_total</code> y <code>ocupacion</code>, aunque las columnas se llamen <code>capacidad</code> y <code>puestos_ocupados</code>.</li>
+          <li>La fecha llega con <b>barras</b> (<code>2026/11/07</code>). <code>date.fromisoformat</code> falla con ese formato.</li>
+          <li>El mes llega como texto en español. Su número es la posición en la lista <code>meses</code> de <code>mensajes.py</code> más 1.</li>
+        </ul>
+      </div>
+      <h3>Traducir los datos del contrato</h3>
+      <div class="code" data-k="srb_traducir" data-lang="py"></div>
+      <h3>Dos operaciones resueltas</h3>
+      <div class="code" data-k="srb_func" data-lang="py"></div>
+      <ul>
+        <li><b>Un engine y un <code>sessionmaker</code> por proceso</b>, creados al arrancar el servicio.</li>
+        <li><b>Una transacción por petición.</b> Nada de Sessions que vivan todo el tiempo.</li>
+        <li><b>Las funciones devuelven datos; el <code>main</code> arma la Respuesta</b> con <code>crear_rta</code> y el mismo <code>uuid</code> de la petición.</li>
+        <li>La <code>CONSULTA</code> queda como ejercicio (módulo 13).</li>
+      </ul>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 12 -->
+    <section class="mod" id="m12" data-t="Errores frecuentes">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 12</b> · Diagnóstico</div><h2>Errores frecuentes</h2></div>
+      <p>Abran el que les esté pasando. Cada uno tiene síntoma, causa y arreglo.</p>
+      <div class="err-grid" id="errs"></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 13 -->
+    <section class="mod" id="m13" data-t="Ejercicios">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 13</b> · Práctica</div><h2>Ejercicios para construir Persistencia</h2></div>
+      <p>Hechos en orden, al final tienen casi toda la capa. Intenten cada uno antes de abrir la solución.</p>
+      <div class="err-grid" id="exs"></div>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <!-- 14 -->
+    <section class="mod" id="m14" data-t="Autoevaluación">
+      <div class="mod-head"><div class="eyebrow"><b>Módulo 14</b> · Repaso</div><h2>Autoevaluación</h2></div>
+      <p>Si aciertan 8 de 10, están listos para escribir Persistencia. <span class="score" id="score">0 / 10</span></p>
+      <div class="quiz" id="quiz"></div>
+      <button class="btn ghost" type="button" id="quiz-reset" style="align-self:flex-start">Reiniciar preguntas</button>
+      <button class="done-btn" type="button">Marcar como entendido</button>
+    </section>
+
+    <footer>
+      <p>La sintaxis corresponde a la serie 2.x de SQLAlchemy y a la imagen oficial <code>postgres:16</code>. Revisen las versiones que queden en su <code>requirements.txt</code>; si instalan una más nueva, algún detalle puede cambiar. El código de esta guía no se ejecutó contra su proyecto: pruébenlo.</p>
+      <p>Documentación oficial: <a href="https://docs.sqlalchemy.org/en/20/tutorial/" target="_blank" rel="noopener">tutorial unificado de SQLAlchemy 2.0</a> y <a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">imagen de PostgreSQL en Docker Hub</a>. Lo que digan ahí manda sobre esta guía.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+const CODE = {
+docker_install:`# Docker y el plugin de compose desde los repositorios de Ubuntu
+sudo apt update
+sudo apt install docker.io docker-compose-v2
+
+# Usar docker sin sudo (cierren sesión y vuelvan a entrar después)
+sudo usermod -aG docker $USER
+
+# Comprobar
+docker --version
+docker compose version`,
+compose:`# compose.yaml
+services:
+  db:
+    image: postgres:16
+    container_name: srb-postgres
+    environment:
+      POSTGRES_USER: srb
+      POSTGRES_PASSWORD: srb
+      POSTGRES_DB: srb
+    ports:
+      - "127.0.0.1:5432:5432"     # solo accesible desde esta máquina
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U srb -d srb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:`,
+docker_cmds:`docker compose up -d          # levanta la base en segundo plano
+docker compose ps             # debe decir "healthy" antes de conectarse
+docker compose logs -f db     # ver qué pasa (Ctrl+C para salir)
+docker compose stop           # detener sin borrar nada
+docker compose down           # borrar el contenedor; los datos quedan en el volumen
+docker compose down -v        # borrar contenedor Y datos: empezar de cero`,
+psql:`-- Entrar a la consola de PostgreSQL dentro del contenedor:
+--   docker compose exec db psql -U srb -d srb
+
+\\dt                              -- listar tablas
+\\d ocurrencia                    -- ver columnas y restricciones
+SELECT * FROM ocurrencia ORDER BY evento_id, fecha;
+SELECT count(*) FROM reserva WHERE estado;
+\\q                               -- salir`,
+venv:`# En la raíz del proyecto
+python3 -m venv .venv
+source .venv/bin/activate
+
+# SQLAlchemy 2.x y el driver de PostgreSQL (psycopg 3)
+pip install "sqlalchemy>=2.0,<3" "psycopg[binary]" python-dotenv
+pip freeze > requirements.txt`,
+env:`# .env (no se sube a git)
+DB_URL=postgresql+psycopg://srb:srb@localhost:5432/srb`,
+probar:`from sqlalchemy import create_engine, text
+from comun.config import DB_URL
+
+engine = create_engine(DB_URL, echo=True)
+
+with engine.connect() as conn:
+    print(conn.execute(text("SELECT version()")).scalar_one())`,
+core_tables:`from sqlalchemy import (MetaData, Table, Column, Integer, String, Date, Boolean,
+                        ForeignKey, CheckConstraint, UniqueConstraint)
+
+metadata = MetaData()
+
+evento = Table(
+    "evento", metadata,
+    Column("id", String(10), primary_key=True),          # "E1", "E2", ...
+    Column("nombre", String(120), nullable=False),
+    Column("tipo_evento", String(30), nullable=False),
+)
+
+ocurrencia = Table(
+    "ocurrencia", metadata,
+    Column("id", Integer, primary_key=True),              # autoincremental
+    Column("evento_id", String(10), ForeignKey("evento.id"), nullable=False),
+    Column("fecha", Date, nullable=False),
+    Column("capacidad", Integer, nullable=False, default=100),
+    Column("puestos_ocupados", Integer, nullable=False, default=0),
+    UniqueConstraint("evento_id", "fecha", name="uq_evento_fecha"),
+    CheckConstraint("puestos_ocupados >= 0 AND puestos_ocupados <= capacidad", name="ck_cupo"),
+)
+
+reserva = Table(
+    "reserva", metadata,
+    Column("id", Integer, primary_key=True),
+    Column("id_cliente", Integer, nullable=False),
+    Column("ocurrencia_id", Integer, ForeignKey("ocurrencia.id"), nullable=False),
+    Column("numero_puestos", Integer, nullable=False),
+    Column("estado", Boolean, nullable=False, default=True),     # True = activa
+    CheckConstraint("numero_puestos > 0", name="ck_numero_puestos"),
+)
+
+metadata.drop_all(engine)     # solo en el script de carga: borra todo
+metadata.create_all(engine)   # crea las tablas que falten`,
+core_ddl:`CREATE TABLE ocurrencia (
+    id SERIAL NOT NULL,
+    evento_id VARCHAR(10) NOT NULL,
+    fecha DATE NOT NULL,
+    capacidad INTEGER NOT NULL,
+    puestos_ocupados INTEGER NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT uq_evento_fecha UNIQUE (evento_id, fecha),
+    CONSTRAINT ck_cupo CHECK (puestos_ocupados >= 0 AND puestos_ocupados <= capacidad),
+    FOREIGN KEY(evento_id) REFERENCES evento (id)
+)`,
+core_insert:`from datetime import date
+from sqlalchemy import insert
+
+with engine.begin() as conn:          # abre transacción; COMMIT al salir
+    conn.execute(insert(evento), [
+        {"id": "E1", "nombre": "Concierto de jazz", "tipo_evento": "cultural"},
+        {"id": "E2", "nombre": "Torneo de ajedrez", "tipo_evento": "deportivo"},
+    ])
+    conn.execute(insert(ocurrencia), [
+        {"evento_id": "E1", "fecha": date(2026, 11, 7)},
+        {"evento_id": "E1", "fecha": date(2026, 11, 21)},   # E1 ocurre dos veces
+        {"evento_id": "E2", "fecha": date(2026, 11, 14)},
+    ])`,
+core_select:`from sqlalchemy import select, func
+
+with engine.connect() as conn:
+    stmt = select(evento).where(evento.c.tipo_evento == "cultural")
+    for fila in conn.execute(stmt):
+        print(fila.id, fila.nombre)           # acceso por nombre de columna
+
+    e1 = conn.execute(select(evento).where(evento.c.id == "E1")).first()   # fila o None
+
+    total = conn.execute(select(func.count()).select_from(evento)).scalar_one()
+
+    # .mappings() entrega filas tipo diccionario
+    filas = [dict(f) for f in conn.execute(select(evento)).mappings()]`,
+core_text:`from sqlalchemy import text
+
+# Bien: parámetro con nombre; el driver lo escapa
+conn.execute(text("SELECT nombre FROM evento WHERE id = :id"), {"id": id_evento})
+
+# Mal: un f-string abre la puerta a inyección SQL
+conn.execute(text(f"SELECT nombre FROM evento WHERE id = '{id_evento}'"))`,
+core_tx:`# Opción 1: engine.begin() hace COMMIT al salir, o ROLLBACK si hubo excepción
+with engine.begin() as conn:
+    conn.execute(sentencia_1)
+    conn.execute(sentencia_2)
+
+# Opción 2: engine.connect() exige commit explícito
+with engine.connect() as conn:
+    conn.execute(sentencia_1)
+    conn.commit()          # si lo olvidan, al salir del with se hace ROLLBACK`,
+core_reservar:`from sqlalchemy import update, insert
+
+def reservar(ocurrencia_id: int, id_cliente: int, n: int):
+    with engine.begin() as conn:
+        res = conn.execute(
+            update(ocurrencia)
+            .where(ocurrencia.c.id == ocurrencia_id)
+            .where(ocurrencia.c.puestos_ocupados + n <= ocurrencia.c.capacidad)
+            .values(puestos_ocupados=ocurrencia.c.puestos_ocupados + n)
+        )
+        if res.rowcount == 0:                    # no existe o no hay cupo
+            return None
+
+        return conn.execute(
+            insert(reserva)
+            .values(id_cliente=id_cliente, ocurrencia_id=ocurrencia_id, numero_puestos=n)
+            .returning(reserva.c.id)
+        ).scalar_one()                           # el id de la reserva nueva`,
+core_delete:`from sqlalchemy import delete
+
+with engine.begin() as conn:
+    conn.execute(delete(reserva).where(reserva.c.id == 42))`,
+orm_models:`from datetime import date
+from sqlalchemy import String, ForeignKey, CheckConstraint, UniqueConstraint
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+class Base(DeclarativeBase):
+    pass
+
+class Evento(Base):
+    __tablename__ = "evento"
+
+    id: Mapped[str] = mapped_column(String(10), primary_key=True)   # "E1"
+    nombre: Mapped[str] = mapped_column(String(120))
+    tipo_evento: Mapped[str] = mapped_column(String(30))
+
+    ocurrencias: Mapped[list["Ocurrencia"]] = relationship(back_populates="evento")
+
+class Ocurrencia(Base):
+    __tablename__ = "ocurrencia"
+    __table_args__ = (
+        UniqueConstraint("evento_id", "fecha", name="uq_evento_fecha"),
+        CheckConstraint("puestos_ocupados >= 0 AND puestos_ocupados <= capacidad", name="ck_cupo"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    evento_id: Mapped[str] = mapped_column(ForeignKey("evento.id"))
+    fecha: Mapped[date]
+    capacidad: Mapped[int] = mapped_column(default=100)
+    puestos_ocupados: Mapped[int] = mapped_column(default=0)
+
+    evento: Mapped["Evento"] = relationship(back_populates="ocurrencias")
+    reservas: Mapped[list["Reserva"]] = relationship(back_populates="ocurrencia")
+
+class Reserva(Base):
+    __tablename__ = "reserva"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    id_cliente: Mapped[int]
+    ocurrencia_id: Mapped[int] = mapped_column(ForeignKey("ocurrencia.id"))
+    numero_puestos: Mapped[int]
+    estado: Mapped[bool] = mapped_column(default=True)     # True = activa
+
+    ocurrencia: Mapped["Ocurrencia"] = relationship(back_populates="reservas")
+
+Base.metadata.create_all(engine)`,
+orm_create:`from datetime import date
+from sqlalchemy.orm import Session
+
+with Session(engine) as session:
+    jazz = Evento(id="E1", nombre="Concierto de jazz", tipo_evento="cultural")
+    jazz.ocurrencias.append(Ocurrencia(fecha=date(2026, 11, 7)))
+    jazz.ocurrencias.append(Ocurrencia(fecha=date(2026, 11, 21)))
+    session.add(jazz)        # las ocurrencias entran en cascada
+    session.commit()         # INSERT del evento y de sus 2 ocurrencias`,
+orm_read:`from sqlalchemy import select
+
+with Session(engine) as session:
+    e1 = session.get(Evento, "E1")           # por llave primaria; None si no existe
+
+    culturales = session.scalars(
+        select(Evento).where(Evento.tipo_evento == "cultural").order_by(Evento.nombre)
+    ).all()                                   # lista de objetos Evento
+
+    filas = session.execute(
+        select(Evento.nombre, Ocurrencia.fecha).join(Evento.ocurrencias)
+    ).all()                                   # lista de tuplas (nombre, fecha)`,
+orm_update:`# session.begin() abre la transacción y hace COMMIT al salir del bloque
+with Session(engine) as session, session.begin():
+    r = session.get(Reserva, 42)
+    r.estado = False                  # la Session detecta el cambio sola
+
+with Session(engine) as session, session.begin():
+    r = session.get(Reserva, 43)
+    if r is not None:
+        session.delete(r)`,
+orm_trap:`from sqlalchemy import update
+
+# Peligroso: leer en Python, sumar y escribir
+oc = session.get(Ocurrencia, 7)
+oc.puestos_ocupados = oc.puestos_ocupados + 2    # otro proceso pudo cambiarlo entre medio
+
+# Correcto: la suma ocurre dentro de PostgreSQL
+session.execute(
+    update(Ocurrencia)
+    .where(Ocurrencia.id == 7)
+    .values(puestos_ocupados=Ocurrencia.puestos_ocupados + 2)
+)`,
+orm_lazy:`from sqlalchemy.orm import selectinload
+
+with Session(engine) as session:
+    # Por defecto: 1 consulta de eventos + 1 más por cada evento al tocar .ocurrencias
+    for e in session.scalars(select(Evento)).all():
+        print(e.id, len(e.ocurrencias))
+
+    # Con selectinload: 2 consultas en total, sin importar cuántos eventos haya
+    eventos = session.scalars(
+        select(Evento).options(selectinload(Evento.ocurrencias))
+    ).all()`,
+orm_detached:`with Session(engine) as session:
+    e = session.get(Evento, "E1")
+
+# la Session ya se cerró
+print(e.nombre)        # funciona: el atributo ya estaba cargado
+e.ocurrencias          # DetachedInstanceError: no hay Session para ir a la BD
+
+# Regla para Persistencia: armen el dict DENTRO del with y devuelvan el dict`,
+srb_traducir:`from datetime import datetime
+from comun.mensajes import meses
+
+def numero_mes(nombre: str) -> int:
+    # "noviembre" -> 11. Lanza ValueError si el mes no existe.
+    return meses.index(nombre.strip().lower()) + 1
+
+def leer_fecha(texto: str):
+    # "2026/11/07" -> date(2026, 11, 7), el formato que envía el cliente
+    return datetime.strptime(texto, "%Y/%m/%d").date()
+
+def escribir_fecha(fecha) -> str:
+    # date(2026, 11, 7) -> "2026/11/07", para responder en el mismo formato
+    return fecha.strftime("%Y/%m/%d")`,
+srb_func:`from sqlalchemy import create_engine, select, update
+from sqlalchemy.orm import sessionmaker
+from comun.config import DB_URL
+
+engine = create_engine(DB_URL)               # una vez, al arrancar el proceso
+SessionLocal = sessionmaker(engine)
+
+def consultar_disponibilidad(datos: dict) -> dict | None:
+    with SessionLocal() as session:
+        oc = session.scalars(
+            select(Ocurrencia).where(
+                Ocurrencia.evento_id == datos["id_evento"],
+                Ocurrencia.fecha == leer_fecha(datos["fecha"]),
+            )
+        ).first()
+        if oc is None:
+            return None                      # el main responde FALLO + NO_EXISTE
+        # nombres EXACTOS que lee el RMC:
+        return {"capacidad_total": oc.capacidad, "ocupacion": oc.puestos_ocupados}
+
+def agregar_reserva(datos: dict, id_cliente: int) -> dict | None:
+    n = datos["n_asientos"]
+    with SessionLocal.begin() as session:    # una transacción por petición
+        oc_id = session.scalars(
+            select(Ocurrencia.id).where(
+                Ocurrencia.evento_id == datos["id_evento"],
+                Ocurrencia.fecha == leer_fecha(datos["fecha"]),
+            )
+        ).first()
+        if oc_id is None:
+            return None
+
+        res = session.execute(               # suma SOLO si cabe
+            update(Ocurrencia)
+            .where(Ocurrencia.id == oc_id,
+                   Ocurrencia.puestos_ocupados + n <= Ocurrencia.capacidad)
+            .values(puestos_ocupados=Ocurrencia.puestos_ocupados + n)
+        )
+        if res.rowcount == 0:
+            return None                      # el main responde FALLO + SIN_CUPO
+
+        r = Reserva(id_cliente=id_cliente, ocurrencia_id=oc_id, numero_puestos=n)
+        session.add(r)
+        session.flush()                      # asigna r.id sin cerrar la transacción
+        return {"id_reserva": r.id}`
+};
+
+/* ---------- resaltado ---------- */
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const PYKW = new Set("from import as def return with if else elif for in not and or is None True False class pass raise try except lambda while print len".split(" "));
+const SQLKW = new Set("SELECT FROM WHERE AND OR NOT INSERT INTO VALUES UPDATE SET DELETE CREATE TABLE PRIMARY KEY FOREIGN REFERENCES CONSTRAINT CHECK UNIQUE NULL JOIN ON ORDER BY DESC ASC AS COUNT BEGIN COMMIT ROLLBACK FOR EXTRACT MONTH USER WITH PASSWORD DATABASE OWNER RETURNING SERIAL INTEGER VARCHAR DATE LIMIT".split(" "));
+function hl(src, lang){
+  let re, out = "", last = 0, m;
+  if (lang === "sql") re = /(--[^\n]*)|('(?:[^']|'')*')|\b(\d+)\b|\b([A-Za-z_]+)\b/g;
+  else if (lang === "sh") re = /(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'[^'\n]*')|(?!)()|(?!)()/g;
+  else re = /(#[^\n]*)|([rbfu]?"(?:[^"\\\n]|\\.)*"|[rbfu]?'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_][A-Za-z0-9_]*)\b/g;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const t = esc(m[0]);
+    if (m[1] !== undefined) out += `<span class="tk-com">${t}</span>`;
+    else if (m[2] !== undefined) out += `<span class="tk-str">${t}</span>`;
+    else if (m[3] !== undefined) out += `<span class="tk-num">${t}</span>`;
+    else if (m[4] !== undefined) {
+      const w = m[0];
+      if (lang === "sql") out += SQLKW.has(w.toUpperCase()) ? `<span class="tk-kw">${t}</span>` : t;
+      else if (PYKW.has(w)) out += `<span class="tk-kw">${t}</span>`;
+      else if (/^[A-Z]/.test(w)) out += `<span class="tk-cls">${t}</span>`;
+      else if (src[re.lastIndex] === "(") out += `<span class="tk-fn">${t}</span>`;
+      else out += t;
+    } else out += t;
+    last = re.lastIndex;
+    if (m[0].length === 0) re.lastIndex++;
+  }
+  return out + esc(src.slice(last));
+}
+const LANGNAME = {py:"python", sql:"sql", sh:"terminal / archivo"};
+function renderCode(el, src){
+  const lang = el.dataset.lang || "py";
+  el.innerHTML = `<div class="code-top"><span>${LANGNAME[lang]}</span><button class="copy" type="button">Copiar</button></div><pre></pre>`;
+  el.querySelector("pre").innerHTML = hl(src, lang);
+  el._src = src;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".copy"); if (!b) return;
+  const box = b.closest(".code"), pre = box.querySelector("pre");
+  const done = () => { b.textContent = "Copiado"; setTimeout(() => b.textContent = "Copiar", 1400); };
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Seleccionado"; setTimeout(() => b.textContent = "Copiar", 1400); };
+  try { navigator.clipboard.writeText(box._src).then(done, fallback); } catch (err) { fallback(); }
+});
+document.querySelectorAll(".code[data-k]").forEach(el => renderCode(el, CODE[el.dataset.k]));
+
+/* ---------- índice y progreso ---------- */
+const KEY = "sqla-persistencia-progreso";
+let done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
+const mods = [...document.querySelectorAll("section.mod")];
+const toc = document.getElementById("toc");
+mods.forEach((s, i) => {
+  const li = document.createElement("li");
+  li.innerHTML = `<a href="#${s.id}" data-id="${s.id}"><span class="n">${String(i).padStart(2,"0")}</span><span>${s.dataset.t}</span></a>`;
+  toc.appendChild(li);
+  s.querySelector(".done-btn").addEventListener("click", () => { done[s.id] = !done[s.id]; save(); paint(); });
+});
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} }
+function paint(){
+  let n = 0;
+  mods.forEach(s => {
+    const on = !!done[s.id]; if (on) n++;
+    const b = s.querySelector(".done-btn");
+    b.setAttribute("aria-pressed", on); b.textContent = on ? "Entendido ✓" : "Marcar como entendido";
+    toc.querySelector(`[data-id="${s.id}"]`).classList.toggle("done", on);
+  });
+  document.getElementById("progbar").style.width = (n / mods.length * 100) + "%";
+  document.getElementById("progtxt").textContent = `${n} de ${mods.length} módulos entendidos`;
+}
+paint();
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver(ents => ents.forEach(en => {
+    if (en.isIntersecting) {
+      toc.querySelectorAll("a").forEach(a => a.classList.toggle("active", a.dataset.id === en.target.id));
+      const a = toc.querySelector(`[data-id="${en.target.id}"]`);
+      if (a && window.innerWidth <= 900) a.scrollIntoView({block:"nearest", inline:"center"});
+    }
+  }), {rootMargin:"-30% 0px -60% 0px"});
+  mods.forEach(s => io.observe(s));
+}
+
+/* ---------- constructor de consultas ---------- */
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DATA = [
+  {id:"E1", n:"Concierto de jazz", t:"cultural", f:"2026/11/07", o:40},
+  {id:"E1", n:"Concierto de jazz", t:"cultural", f:"2026/11/21", o:100},
+  {id:"E2", n:"Torneo de ajedrez", t:"deportivo", f:"2026/11/14", o:12},
+  {id:"E3", n:"Obra de teatro", t:"cultural", f:"2026/10/24", o:87},
+  {id:"E4", n:"Carrera 5K", t:"deportivo", f:"2026/12/05", o:100},
+  {id:"E4", n:"Carrera 5K", t:"deportivo", f:"2026/12/19", o:55},
+  {id:"E5", n:"Cine foro", t:"cultural", f:"2026/11/28", o:99},
+  {id:"E6", n:"Partido de voleibol", t:"deportivo", f:"2026/10/30", o:64},
+  {id:"E7", n:"Feria de ciencia", t:"cultural", f:"2026/12/11", o:20}
+];
+const qb = id => document.getElementById(id);
+function buildQuery(){
+  const mes = +qb("qb-mes").value, tipo = qb("qb-tipo").value, cupo = qb("qb-cupo").checked, ord = qb("qb-orden").value;
+  const nombre = MESES[mes - 1];
+  let core = `mes = numero_mes("${nombre}")          # -> ${mes}
+stmt = (
+    select(evento.c.id, evento.c.nombre, ocurrencia.c.fecha,
+           (ocurrencia.c.capacidad - ocurrencia.c.puestos_ocupados).label("libres"))
+    .join_from(evento, ocurrencia)
+    .where(extract("month", ocurrencia.c.fecha) == mes)`;
+  let sql = `SELECT evento.id, evento.nombre, ocurrencia.fecha,
+       ocurrencia.capacidad - ocurrencia.puestos_ocupados AS libres
+FROM evento JOIN ocurrencia ON evento.id = ocurrencia.evento_id
+WHERE EXTRACT(month FROM ocurrencia.fecha) = %(param_1)s`;
+  const params = [`param_1: ${mes}`];
+  if (tipo) { core += `\n    .where(evento.c.tipo_evento == "${tipo}")`; sql += `\n  AND evento.tipo_evento = %(tipo_evento_1)s`; params.push(`tipo_evento_1: '${tipo}'`); }
+  if (cupo) { core += `\n    .where(ocurrencia.c.puestos_ocupados < ocurrencia.c.capacidad)`; sql += `\n  AND ocurrencia.puestos_ocupados < ocurrencia.capacidad`; }
+  if (ord === "fecha") { core += `\n    .order_by(ocurrencia.c.fecha)`; sql += `\nORDER BY ocurrencia.fecha`; }
+  else { core += `\n    .order_by((ocurrencia.c.capacidad - ocurrencia.c.puestos_ocupados).desc())`; sql += `\nORDER BY ocurrencia.capacidad - ocurrencia.puestos_ocupados DESC`; }
+  core += `\n)\nwith engine.connect() as conn:\n    filas = conn.execute(stmt).mappings().all()`;
+  sql += `\n-- los parámetros viajan aparte: {${params.join(", ")}}`;
+  renderCode(qb("qb-core"), core);
+  renderCode(qb("qb-sql"), sql);
+  let rows = DATA.filter(r => +r.f.slice(5,7) === mes && (!tipo || r.t === tipo) && (!cupo || r.o < 100));
+  rows.sort(ord === "fecha" ? (a,b) => a.f.localeCompare(b.f) : (a,b) => a.o - b.o);
+  qb("qb-out").innerHTML = rows.length ? rows.map(r => `<tr><td><code>${r.id}</code></td><td>${esc(r.n)}</td><td><code>${r.f}</code></td><td class="num">${100 - r.o}</td></tr>`).join("") : `<tr><td colspan="4">Ninguna ocurrencia cumple los filtros.</td></tr>`;
+}
+["qb-mes","qb-tipo","qb-cupo","qb-orden"].forEach(id => qb(id).addEventListener("change", buildQuery));
+buildQuery();
+
+/* ---------- estados de la Session ---------- */
+const STATES = {
+  transient:"<b>transient</b>: crearon el objeto con <code>Evento(...)</code>, pero la Session no lo conoce. No existe en la base.",
+  pending:"<b>pending</b>: hicieron <code>session.add(obj)</code>. La Session lo va a insertar, pero todavía no envió el INSERT.",
+  persistent:"<b>persistent</b>: después de un flush o commit el objeto tiene fila en la base y la Session vigila sus cambios. Lo que cargan con <code>get</code> o <code>scalars</code> nace en este estado.",
+  detached:"<b>detached</b>: la Session se cerró. Pueden leer los atributos ya cargados, pero si intentan cargar una relación obtienen <code>DetachedInstanceError</code>."
+};
+const stBox = document.getElementById("state-desc");
+document.querySelectorAll("#states button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("#states button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  stBox.innerHTML = `<p>${STATES[b.dataset.s]}</p>`;
+}));
+stBox.innerHTML = `<p>${STATES.transient}</p>`;
+
+/* ---------- N+1 ---------- */
+function paintN(){
+  const n = +document.getElementById("nplus").value;
+  document.getElementById("nplus-v").textContent = n;
+  const opts = [
+    {name:"Carga por defecto (lazy)", q:1 + n, d:"1 consulta de eventos + " + n + " de ocurrencias", hot:true},
+    {name:"selectinload", q:2, d:"1 de eventos + 1 con WHERE evento_id IN (…)"},
+    {name:"joinedload", q:1, d:"1 consulta con LEFT OUTER JOIN"}
+  ];
+  document.getElementById("qcount").innerHTML = opts.map(o => `<div class="stat"><small>${o.name}</small><b>${o.q}</b> <span style="color:var(--muted);font-size:.85rem">consultas</span><div class="qbar ${o.hot ? "hot" : ""}"><i style="width:${o.q / 51 * 100}%"></i></div><span style="font-size:.8rem;color:var(--muted)">${o.d}</span></div>`).join("");
+}
+document.getElementById("nplus").addEventListener("input", paintN); paintN();
+
+/* ---------- Rosetta ---------- */
+const ROS = [
+  {k:"Buscar por id", note:"La forma más corta en el ORM es session.get(). En Core se escribe el WHERE completo.",
+   sql:`SELECT * FROM evento WHERE id = 'E1';`,
+   core:`conn.execute(
+    select(evento).where(evento.c.id == "E1")
+).first()`,
+   orm:`session.get(Evento, "E1")`},
+  {k:"Ocurrencia por evento y fecha", note:"Así identifica el RMC una ocurrencia en CONSULTA_DISPONIBILIDAD y AGREGAR_RESERVA.",
+   sql:`SELECT * FROM ocurrencia
+WHERE evento_id = 'E1'
+  AND fecha = '2026-11-07';`,
+   core:`conn.execute(
+    select(ocurrencia)
+    .where(ocurrencia.c.evento_id == "E1",
+           ocurrencia.c.fecha == leer_fecha("2026/11/07"))
+).first()`,
+   orm:`session.scalars(
+    select(Ocurrencia)
+    .where(Ocurrencia.evento_id == "E1",
+           Ocurrencia.fecha == leer_fecha("2026/11/07"))
+).first()`},
+  {k:"Insertar", note:"En el ORM el INSERT ocurre al hacer flush o commit, no en la línea del add().",
+   sql:`INSERT INTO evento (id, nombre, tipo_evento)
+VALUES ('E9', 'Feria de ciencia', 'cultural');`,
+   core:`conn.execute(
+    insert(evento).values(
+        id="E9", nombre="Feria de ciencia",
+        tipo_evento="cultural")
+)
+conn.commit()`,
+   orm:`session.add(Evento(
+    id="E9", nombre="Feria de ciencia",
+    tipo_evento="cultural"))
+session.commit()`},
+  {k:"Eventos del mes", note:"En el ORM se une siguiendo la relación (Evento.ocurrencias) en vez de repetir la condición del ON.",
+   sql:`SELECT e.nombre, o.fecha
+FROM evento e
+JOIN ocurrencia o ON e.id = o.evento_id
+WHERE EXTRACT(month FROM o.fecha) = 11;`,
+   core:`conn.execute(
+    select(evento.c.nombre, ocurrencia.c.fecha)
+    .join_from(evento, ocurrencia)
+    .where(extract("month", ocurrencia.c.fecha) == 11)
+).all()`,
+   orm:`session.execute(
+    select(Evento.nombre, Ocurrencia.fecha)
+    .join(Evento.ocurrencias)
+    .where(extract("month", Ocurrencia.fecha) == 11)
+).all()`},
+  {k:"Contar", note:"scalar_one() y scalar() devuelven el número directamente en vez de una fila.",
+   sql:`SELECT count(*) FROM reserva
+WHERE estado;`,
+   core:`conn.execute(
+    select(func.count()).select_from(reserva)
+    .where(reserva.c.estado.is_(True))
+).scalar_one()`,
+   orm:`session.scalar(
+    select(func.count()).select_from(Reserva)
+    .where(Reserva.estado.is_(True))
+)`},
+  {k:"Update condicional", note:"La operación clave de AGREGAR_RESERVA. rowcount = 1 significa que había cupo; 0 significa FALLO + SIN_CUPO.",
+   sql:`UPDATE ocurrencia
+SET puestos_ocupados = puestos_ocupados + 2
+WHERE id = 7
+  AND puestos_ocupados + 2 <= capacidad;`,
+   core:`conn.execute(
+    update(ocurrencia)
+    .where(ocurrencia.c.id == 7,
+           ocurrencia.c.puestos_ocupados + 2
+           <= ocurrencia.c.capacidad)
+    .values(puestos_ocupados=
+            ocurrencia.c.puestos_ocupados + 2)
+).rowcount`,
+   orm:`session.execute(
+    update(Ocurrencia)
+    .where(Ocurrencia.id == 7,
+           Ocurrencia.puestos_ocupados + 2
+           <= Ocurrencia.capacidad)
+    .values(puestos_ocupados=
+            Ocurrencia.puestos_ocupados + 2)
+).rowcount`},
+  {k:"Bloquear fila", note:"El bloqueo dura hasta el commit o rollback de esa transacción. Úsenlo dentro de begin().",
+   sql:`SELECT * FROM ocurrencia
+WHERE id = 7
+FOR UPDATE;`,
+   core:`conn.execute(
+    select(ocurrencia)
+    .where(ocurrencia.c.id == 7)
+    .with_for_update()
+).first()`,
+   orm:`session.scalars(
+    select(Ocurrencia)
+    .where(Ocurrencia.id == 7)
+    .with_for_update()
+).one()`},
+  {k:"Borrar", note:"En el ORM primero se carga el objeto y luego se borra. Si solo tienen el id, también pueden usar delete() de Core dentro de la Session.",
+   sql:`DELETE FROM reserva WHERE id = 42;`,
+   core:`conn.execute(
+    delete(reserva).where(reserva.c.id == 42)
+)`,
+   orm:`r = session.get(Reserva, 42)
+if r is not None:
+    session.delete(r)`}
+];
+const rosSeg = document.getElementById("ros-seg");
+ROS.forEach((r, i) => { const b = document.createElement("button"); b.type = "button"; b.textContent = r.k; b.addEventListener("click", () => showRos(i)); rosSeg.appendChild(b); });
+function showRos(i){
+  [...rosSeg.children].forEach((b, j) => b.setAttribute("aria-pressed", i === j));
+  const r = ROS[i];
+  document.getElementById("ros-note").textContent = r.note;
+  renderCode(document.getElementById("ros-sql"), r.sql);
+  renderCode(document.getElementById("ros-core"), r.core);
+  renderCode(document.getElementById("ros-orm"), r.orm);
+}
+showRos(5);
+
+/* ---------- simulador ---------- */
+const SIM = {
+  ingenuo:{name:"Leer, decidir en Python, escribir",
+    steps:[
+      {w:"A", sql:"SELECT puestos_ocupados FROM ocurrencia WHERE id = 7", why:"La réplica 1 lee 98. Hay cupo para 2.", oc:98, sold:0, lock:"—"},
+      {w:"B", sql:"SELECT puestos_ocupados FROM ocurrencia WHERE id = 7", why:"La réplica 2 también lee 98, porque la 1 todavía no escribe.", oc:98, sold:0, lock:"—"},
+      {w:"A", sql:"UPDATE ocurrencia SET puestos_ocupados = 100 WHERE id = 7\nINSERT INTO reserva (…, numero_puestos) VALUES (…, 2)\nCOMMIT", why:"La réplica 1 calculó 98 + 2 en Python y escribe 100.", oc:100, sold:2, lock:"—"},
+      {w:"B", sql:"UPDATE ocurrencia SET puestos_ocupados = 100 WHERE id = 7\nINSERT INTO reserva (…, numero_puestos) VALUES (…, 2)\nCOMMIT", why:"La réplica 2 usa el 98 que leyó antes y también escribe 100.", oc:100, sold:4, lock:"—"}
+    ],
+    verdict:["badv","Sobreventa silenciosa. Hay dos reservas de 2 puestos (4 vendidos) y el contador dice 100. El CHECK no lo detecta porque el valor escrito, 100, es válido. La BD final no coincidirá con el caso de prueba del profesor."]},
+  forupdate:{name:"SELECT … FOR UPDATE",
+    steps:[
+      {w:"A", sql:"BEGIN\nSELECT puestos_ocupados FROM ocurrencia WHERE id = 7 FOR UPDATE", why:"La réplica 1 lee 98 y bloquea la fila.", oc:98, sold:0, lock:"RMC 1"},
+      {w:"B", sql:"BEGIN\nSELECT puestos_ocupados FROM ocurrencia WHERE id = 7 FOR UPDATE", why:"La réplica 2 queda esperando: la fila está bloqueada.", oc:98, sold:0, lock:"RMC 1", wait:"B"},
+      {w:"A", sql:"UPDATE ocurrencia SET puestos_ocupados = 100 WHERE id = 7\nINSERT INTO reserva (…, 2)\nCOMMIT", why:"La réplica 1 confirma. El commit libera el bloqueo.", oc:100, sold:2, lock:"RMC 2"},
+      {w:"B", sql:"-- la espera termina y la consulta devuelve 100", why:"La réplica 2 ve el valor confirmado y ahora tiene el bloqueo.", oc:100, sold:2, lock:"RMC 2"},
+      {w:"B", sql:"ROLLBACK", why:"100 + 2 supera la capacidad. Responde FALLO + SIN_CUPO.", oc:100, sold:2, lock:"—"}
+    ],
+    verdict:["good","Correcto: solo una réplica reserva y el contador coincide con las reservas. El costo es que la segunda espera; con mucha carga sobre la misma ocurrencia, las esperas suben el tiempo de respuesta."]},
+  condicional:{name:"UPDATE condicional",
+    steps:[
+      {w:"A", sql:"BEGIN\nUPDATE ocurrencia SET puestos_ocupados = puestos_ocupados + 2\n WHERE id = 7 AND puestos_ocupados + 2 <= capacidad\n-- 1 fila afectada", why:"La suma y la verificación ocurren en PostgreSQL. La fila queda bloqueada hasta el commit.", oc:"100*", sold:0, lock:"RMC 1"},
+      {w:"B", sql:"BEGIN\nUPDATE ocurrencia SET puestos_ocupados = puestos_ocupados + 2\n WHERE id = 7 AND puestos_ocupados + 2 <= capacidad", why:"La réplica 2 espera porque la fila está bloqueada.", oc:"100*", sold:0, lock:"RMC 1", wait:"B"},
+      {w:"A", sql:"INSERT INTO reserva (…, 2) RETURNING id\nCOMMIT", why:"La réplica 1 confirma y libera la fila.", oc:100, sold:2, lock:"RMC 2"},
+      {w:"B", sql:"-- PostgreSQL vuelve a evaluar el WHERE con 100\n-- 0 filas afectadas\nROLLBACK", why:"rowcount es 0: responde FALLO + SIN_CUPO.", oc:100, sold:2, lock:"—"}
+    ],
+    verdict:["good","Correcto y con menos código: no hay SELECT previo ni bloqueo explícito. Es lo que usa la función agregar_reserva del módulo 11. El asterisco en 100* indica un valor escrito pero aún sin confirmar; nadie más lo ve hasta el commit."]}
+};
+let simKey = "ingenuo", simPos = 0;
+const simSeg = document.getElementById("sim-seg");
+Object.entries(SIM).forEach(([k, v]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.k = k; b.textContent = v.name; b.addEventListener("click", () => { simKey = k; simPos = 0; paintSim(); }); simSeg.appendChild(b); });
+function paintSim(){
+  const s = SIM[simKey], st = s.steps;
+  [...simSeg.children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === simKey));
+  const cur = simPos ? st[simPos - 1] : {oc:98, sold:0, lock:"—"};
+  document.getElementById("st-oc").textContent = cur.oc;
+  document.getElementById("st-res").textContent = cur.sold;
+  document.getElementById("st-lock").textContent = cur.lock;
+  document.getElementById("st-step").textContent = `${simPos}/${st.length}`;
+  const box = document.getElementById("sim-steps");
+  box.innerHTML = st.slice(0, simPos).map(x => {
+    const cell = `<div class="cell on ${x.w}"><b>${x.w === "A" ? "Réplica 1" : "Réplica 2"}</b><pre>${esc(x.sql)}</pre><span class="why">${x.why}</span></div>`;
+    const other = x.wait && x.wait !== x.w ? `<div class="cell wait">esperando el bloqueo…</div>` : `<div class="cell"></div>`;
+    return `<div class="step">${x.w === "A" ? cell + other : other + cell}</div>`;
+  }).join("") || `<div class="cell on" style="color:var(--muted)">Pulsen «Siguiente paso» para empezar. Estado inicial: capacidad 100, puestos_ocupados 98.</div>`;
+  const v = document.getElementById("sim-verdict");
+  if (simPos === st.length) { v.hidden = false; v.className = "verdict " + s.verdict[0]; v.innerHTML = `<p>${s.verdict[1]}</p>`; } else v.hidden = true;
+  document.getElementById("sim-next").disabled = simPos === st.length;
+}
+document.getElementById("sim-next").addEventListener("click", () => { simPos = Math.min(simPos + 1, SIM[simKey].steps.length); paintSim(); });
+document.getElementById("sim-all").addEventListener("click", () => { simPos = SIM[simKey].steps.length; paintSim(); });
+document.getElementById("sim-reset").addEventListener("click", () => { simPos = 0; paintSim(); });
+paintSim();
+
+/* ---------- errores ---------- */
+const ERRS = [
+  ["connection refused al conectar a localhost:5432", "El contenedor no está corriendo, o está arrancando todavía.", "docker compose ps: debe decir healthy. Si no aparece, docker compose up -d y esperen unos segundos."],
+  ["password authentication failed for user \"srb\"", "Cambiaron la contraseña en compose.yaml después de crear el volumen. Las variables POSTGRES_* solo se aplican la primera vez.", "docker compose down -v (borra los datos) y docker compose up -d. O usen la contraseña original."],
+  ["Bind for 127.0.0.1:5432 failed: port is already allocated", "Ya hay un PostgreSQL instalado en la máquina, u otro contenedor, usando el 5432.", "Detengan el otro (sudo systemctl stop postgresql) o publiquen otro puerto, por ejemplo 5433:5432, y ajusten DB_URL."],
+  ["permission denied while trying to connect to the Docker daemon socket", "Su usuario no está en el grupo docker, o no cerraron sesión después de agregarlo.", "sudo usermod -aG docker $USER y vuelvan a iniciar sesión. Mientras tanto, sudo docker …"],
+  ["Hice INSERT y en la base no aparece nada", "Usaron engine.connect() o una Session sin commit. Al salir del with, SQLAlchemy hace rollback.", "Usen engine.begin() / session.begin(), o llamen commit() antes de salir."],
+  ["TypeError: Boolean value of this clause is not defined", "Escribieron where(A == 1 and B == 2). El and de Python no funciona con expresiones SQL.", "Pasen varias condiciones separadas por coma en where(), o usen and_() / or_()."],
+  ["ModuleNotFoundError: No module named 'psycopg2'", "La URL postgresql:// usa psycopg2 por defecto, pero instalaron psycopg 3.", "Cambien la URL a postgresql+psycopg://…"],
+  ["ValueError: time data '2026/11/07' does not match format", "Están leyendo la fecha con otro formato (por ejemplo date.fromisoformat, que espera guiones).", "datetime.strptime(texto, \"%Y/%m/%d\").date(), como en leer_fecha del módulo 11."],
+  ["KeyError: 'capacidad_total' en el RMC", "Persistencia respondió con otro nombre de clave (capacidad, puestos_ocupados…).", "Respeten el contrato: la respuesta de disponibilidad usa capacidad_total y ocupacion."],
+  ["Object of type date is not JSON serializable", "Intentan mandar por ZeroMQ un dict con objetos date.", "Conviertan antes con escribir_fecha (formato con barras, el mismo que envía el cliente)."],
+  ["DetachedInstanceError", "Accedieron a una relación después de cerrar la Session.", "Armen el dict de respuesta dentro del with, o carguen la relación con selectinload."],
+  ["Cambié una columna del modelo y la tabla sigue igual", "create_all no modifica tablas que ya existen.", "Corran el script de carga con drop_all + create_all. No necesitan migraciones."]
+];
+document.getElementById("errs").innerHTML = ERRS.map(([s, c, f]) => `<details><summary>${esc(s)}</summary><div class="body"><dl><dt>Causa</dt><dd>${esc(c)}</dd><dt>Arreglo</dt><dd>${esc(f)}</dd></dl></div></details>`).join("");
+
+/* ---------- ejercicios ---------- */
+const EXS = [
+  {t:"1 · Carga inicial desde JSON", p:"Lean un archivo con los eventos y sus fechas, borren todo y carguen la base desde cero. El día de la sustentación solo cambian el archivo por el caso del profesor. Usen el mismo formato de fecha con barras del contrato.",
+   s:`# datos/eventos.json:
+# [{"id": "E1", "nombre": "Concierto de jazz", "tipo_evento": "cultural",
+#   "fechas": ["2026/11/07", "2026/11/21"]}, ...]
+import json
+from sqlalchemy.orm import Session
+
+def cargar(ruta: str) -> None:
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+    with open(ruta, encoding="utf-8") as archivo:
+        datos = json.load(archivo)
+    with Session(engine) as session, session.begin():
+        for d in datos:
+            ev = Evento(id=d["id"], nombre=d["nombre"], tipo_evento=d["tipo_evento"])
+            for txt in d["fechas"]:
+                ev.ocurrencias.append(
+                    Ocurrencia(fecha=leer_fecha(txt), capacidad=100, puestos_ocupados=0))
+            session.add(ev)`},
+  {t:"2 · Generar los 50 eventos del enunciado", p:"Escriban el eventos.json por defecto: 50 eventos en un mismo mes, 20 de ellos con dos fechas y el resto con una. Así pueden probar mientras llega el caso del profesor.",
+   s:`import json
+
+def generar(ruta: str, anio: int = 2026, mes: int = 11) -> None:
+    eventos = []
+    for i in range(1, 51):
+        dia = 1 + (i % 14)                          # días 1 a 14
+        fechas = [f"{anio}/{mes:02d}/{dia:02d}"]
+        if i <= 20:                                  # los 20 primeros, dos veces
+            fechas.append(f"{anio}/{mes:02d}/{dia + 14:02d}")
+        eventos.append({"id": f"E{i}", "nombre": f"Evento {i}",
+                        "tipo_evento": "cultural" if i % 2 else "deportivo",
+                        "fechas": fechas})
+    with open(ruta, "w", encoding="utf-8") as archivo:
+        json.dump(eventos, archivo, ensure_ascii=False, indent=2)`},
+  {t:"3 · La operación CONSULTA", p:"Reciben {\"mes\": \"noviembre\"} y devuelven las ocurrencias de ese mes con su evento. El formato de la lista está por acordar; aquí va la propuesta de la guía del equipo. Hagan una sola consulta con join, no una por evento.",
+   s:`from sqlalchemy import select, extract
+
+def consultar_eventos(datos: dict) -> dict:
+    mes = numero_mes(datos["mes"])
+    with SessionLocal() as session:
+        filas = session.execute(
+            select(Evento.id, Evento.nombre, Evento.tipo_evento,
+                   Ocurrencia.fecha, Ocurrencia.capacidad, Ocurrencia.puestos_ocupados)
+            .join(Evento.ocurrencias)
+            .where(extract("month", Ocurrencia.fecha) == mes)
+            .order_by(Ocurrencia.fecha, Evento.id)
+        ).all()
+        return {"eventos": [
+            {"id_evento": f.id, "nombre": f.nombre, "tipo_evento": f.tipo_evento,
+             "fecha": escribir_fecha(f.fecha), "capacidad": f.capacidad,
+             "puestos_ocupados": f.puestos_ocupados}
+            for f in filas
+        ]}`},
+  {t:"4 · Mostrar el estado de la BD", p:"El enunciado exige ver el estado inicial de la BD y cómo va cambiando. Escriban una función que imprima cada ocurrencia con sus puestos, y llámenla al arrancar Persistencia y después de cada AGREGAR_RESERVA.",
+   s:`def imprimir_estado() -> None:
+    with SessionLocal() as session:
+        filas = session.execute(
+            select(Ocurrencia.evento_id, Ocurrencia.fecha,
+                   Ocurrencia.puestos_ocupados, Ocurrencia.capacidad)
+            .order_by(Ocurrencia.evento_id, Ocurrencia.fecha)
+        ).all()
+    print(f"{'evento':<8}{'fecha':<12}{'ocupados':>9}{'capacidad':>10}")
+    for f in filas:
+        print(f"{f.evento_id:<8}{escribir_fecha(f.fecha):<12}"
+              f"{f.puestos_ocupados:>9}{f.capacidad:>10}")`}
+];
+document.getElementById("exs").innerHTML = EXS.map((x, i) => `<details><summary>${esc(x.t)}</summary><div class="body"><p>${esc(x.p)}</p><details><summary>Ver solución</summary><div class="body"><div class="code" data-lang="py" id="ex${i}"></div></div></details></div></details>`).join("");
+EXS.forEach((x, i) => renderCode(document.getElementById("ex" + i), x.s));
+
+/* ---------- quiz ---------- */
+const QZ = [
+  {q:"Cambiaron POSTGRES_PASSWORD en compose.yaml y ahora sale \"password authentication failed\". ¿Por qué?", o:["Docker no lee compose.yaml después del primer arranque","Las variables POSTGRES_* solo se aplican cuando el volumen está vacío","La contraseña debe ir también en el Dockerfile"], a:1, e:"El volumen ya tenía la base creada con la contraseña vieja. down -v borra los datos y la base se crea de nuevo."},
+  {q:"¿Por qué el puerto se publica como 127.0.0.1:5432:5432?", o:["Es más rápido","Persistencia está en la misma VM, así que no hace falta abrir la base a la red","PostgreSQL no acepta otra forma"], a:1, e:"Solo los procesos de esa máquina pueden conectarse. Menos superficie expuesta."},
+  {q:"¿Qué relación hay entre Core y el ORM?", o:["Son librerías separadas que no se pueden mezclar","El ORM está construido encima de Core y se pueden usar en la misma Session","Core es la versión antigua y el ORM la reemplazó"], a:1, e:"El ORM traduce todo a sentencias de Core. Por eso un update() de Core funciona dentro de una Session."},
+  {q:"Abren engine.connect(), hacen un INSERT y salen del with sin commit(). ¿Qué pasa?", o:["Se guarda igual","Se hace rollback y el INSERT se pierde","Lanza un error"], a:1, e:"En 2.x, salir sin commit hace rollback. engine.begin() hace commit automáticamente."},
+  {q:"El RMC envía CONSULTA_DISPONIBILIDAD. ¿Qué claves debe traer la respuesta?", o:["capacidad y puestos_ocupados","capacidad_total y ocupacion","libres"], a:1, e:"Es el contrato que el RMC ya lee. Los nombres de las columnas no importan; los de la respuesta sí."},
+  {q:"Llega la fecha \"2026/11/07\". ¿Cómo se convierte a date?", o:["date.fromisoformat(texto)","datetime.strptime(texto, \"%Y/%m/%d\").date()","int(texto)"], a:1, e:"fromisoformat espera guiones y falla con barras."},
+  {q:"¿Cuál de estas formas de reservar puede sobrevender con dos réplicas del RMC?", o:["UPDATE … SET puestos_ocupados = puestos_ocupados + 2 WHERE … AND puestos_ocupados + 2 <= capacidad","Leer puestos_ocupados, sumar en Python y escribir el resultado","SELECT … FOR UPDATE y luego UPDATE"], a:1, e:"Entre la lectura y la escritura la otra réplica puede leer el mismo valor viejo."},
+  {q:"En el UPDATE condicional, rowcount == 0 significa…", o:["Que hubo un error de conexión","Que no había cupo (o la ocurrencia no existe)","Que el commit falló"], a:1, e:"Ninguna fila cumplió el WHERE. Persistencia responde FALLO + SIN_CUPO."},
+  {q:"Persistencia debe responder al RMC por ZeroMQ. ¿Qué envía?", o:["El objeto Reserva del ORM","Un dict con tipos simples, convertido a JSON","La Session"], a:1, e:"Los objetos del ORM dependen de su Session y no son JSON. Las fechas salen como texto con barras."},
+  {q:"¿Cuántos engine debe crear el proceso de Persistencia?", o:["Uno por petición","Uno, al arrancar","Uno por tabla"], a:1, e:"El engine contiene el pool de conexiones. Uno por petición agota las conexiones de PostgreSQL."}
+];
+const quiz = document.getElementById("quiz");
+let answered = {};
+function paintQuiz(){
+  quiz.innerHTML = QZ.map((x, i) => `<div class="q" data-i="${i}"><b>${i + 1}. ${esc(x.q)}</b><div class="opts">${x.o.map((o, j) => `<label for="q${i}o${j}"><input type="radio" name="q${i}" id="q${i}o${j}" value="${j}"> <span>${esc(o)}</span></label>`).join("")}</div><p class="fb" hidden></p></div>`).join("");
+  document.getElementById("score").textContent = `0 / ${QZ.length}`;
+}
+quiz.addEventListener("change", e => {
+  const q = e.target.closest(".q"); if (!q) return;
+  const i = +q.dataset.i, j = +e.target.value, x = QZ[i];
+  answered[i] = j === x.a;
+  q.querySelectorAll("label").forEach((l, k) => { l.classList.remove("right","wrong"); if (k === x.a) l.classList.add("right"); else if (k === j) l.classList.add("wrong"); });
+  q.querySelectorAll("input").forEach(inp => inp.disabled = true);
+  const fb = q.querySelector(".fb"); fb.hidden = false; fb.textContent = (j === x.a ? "Correcto. " : "No. ") + x.e;
+  document.getElementById("score").textContent = `${Object.values(answered).filter(Boolean).length} / ${QZ.length}`;
+});
+document.getElementById("quiz-reset").addEventListener("click", () => { answered = {}; paintQuiz(); });
+paintQuiz();
+</script>
+
+</body></html>
