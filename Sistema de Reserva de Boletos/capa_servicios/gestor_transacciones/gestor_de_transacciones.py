@@ -1,3 +1,9 @@
+"""Puente de mensajes: cliente REQ -> ROUTER/DEALER del GT -> RMC REP.
+
+El GT conserva todos los frames. ROUTER añade la identidad de conexión del cliente
+y REP la conserva internamente para responder. El UUID dentro del JSON identifica
+la petición de negocio; la identidad del frame permite devolverla a su socket.
+"""
 import zmq
 from comun.config import GT_PORT_CLI, GT_PORT_RMC
 
@@ -10,6 +16,7 @@ class Gestor_transacciones():
 
     @property
     def contexto(self):
+        # Las propiedades conservan el diseño: lectura pública, almacenamiento _privado.
         return self._contexto
 
     @contexto.setter
@@ -42,26 +49,30 @@ class Gestor_transacciones():
 
 
     def iniciar_sockets(self):
+        # bind('*') escucha por las interfaces de esta máquina. Nunca usar '*' en connect.
         self.contexto = zmq.Context()
         self.router_socket = self.contexto.socket(zmq.ROUTER)
         self.router_socket.bind(f"tcp://*:{GT_PORT_CLI}")
         self.dealer_socket = self.contexto.socket(zmq.DEALER)
         self.dealer_socket.bind(f"tcp://*:{GT_PORT_RMC}")
         self.poller = zmq.Poller()
+        # Poller indica cuál socket tiene mensajes sin bloquear esperando solo uno.
         self.poller.register(self.dealer_socket, zmq.POLLIN)
         self.poller.register(self.router_socket, zmq.POLLIN)
 
     def iniciar_gestor(self):
         while True:
+            # Espera hasta que llegue una petición del cliente o respuesta del RMC.
             sockets = dict(self.poller.poll())
 
             if self.dealer_socket in sockets and sockets[self.dealer_socket] == zmq.POLLIN:
                 frames = self.dealer_socket.recv_multipart()
-                print(f"la respuesta es: {frames[-1].decode('utf-8')}")
+                print(f"[GT] respuesta: {frames[-1]!r}", flush=True)
+                # Respuesta completa: [identidad_cliente, separador vacío, JSON].
                 self.router_socket.send_multipart(frames)
             if self.router_socket in sockets and sockets[self.router_socket] == zmq.POLLIN:
                 frames = self.router_socket.recv_multipart()
-                print(f"la peticion es: {frames[-1].decode('utf-8')}")
+                print(f"[GT] petición: {frames[-1]!r}", flush=True)
+                # No reenviar únicamente el JSON: se perdería la ruta al consumidor.
                 self.dealer_socket.send_multipart(frames)
-
 
