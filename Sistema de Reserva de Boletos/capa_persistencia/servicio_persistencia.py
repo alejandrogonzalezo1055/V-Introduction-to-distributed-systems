@@ -52,17 +52,25 @@ class Servicio_persistencia(I_Servicio_persistencia):
     def consultar_eventos(self, peticion):
         try:
             mes = numero_mes(peticion['datos']['mes'])
+            anio = peticion['datos'].get('anio')
+            if anio is not None and (type(anio) is not int or not 1 <= anio <= 9999):
+                raise ValueError('año inválido')
         except (KeyError, TypeError, ValueError):
             return responder(peticion, FALLO, DATO_INVALIDO, {'razon': 'mes inválido o ausente'})
 
         with SessionLocal() as session:
-            filas = session.execute(
+            # select describe columnas y join une evento con sus ocurrencias.
+            # Una fila devuelta representa una fecha, no necesariamente otro evento.
+            consulta = (
                 select(Evento.id, Evento.nombre, Evento.tipo_evento,
                        Ocurrencia.fecha, Ocurrencia.capacidad, Ocurrencia.puestos_ocupados)
                 .join(Evento.ocurrencias)
                 .where(extract('month', Ocurrencia.fecha) == mes)
                 .order_by(Ocurrencia.fecha, Evento.id)
-            ).all()
+            )
+            if anio is not None:
+                consulta = consulta.where(extract('year', Ocurrencia.fecha) == anio)
+            filas = session.execute(consulta).all()
 
             eventos = [
                 {'id_evento': f.id, 'nombre': f.nombre, 'tipo_evento': f.tipo_evento,
@@ -95,10 +103,14 @@ class Servicio_persistencia(I_Servicio_persistencia):
     def agregar_reserva(self, peticion):
         try:
             id_evento, fecha = self._leer_evento_y_fecha(peticion)
-            n = int(peticion['datos']['n_asientos'])
-            id_cliente = int(peticion['id_cliente'])
-            if n <= 0:
-                raise ValueError('n_asientos debe ser positivo')
+            n = peticion['datos']['n_asientos']
+            id_cliente = peticion['id_cliente']
+            # int(1.5), int(True) y int('2') aceptarían valores que el contrato
+            # no considera enteros JSON. Validar tipo evita esa conversión silenciosa.
+            if type(n) is not int or not 1 <= n <= 2147483647:
+                raise ValueError('n_asientos debe ser un entero positivo')
+            if type(id_cliente) is not int or not 1 <= id_cliente <= 2147483647:
+                raise ValueError('id_cliente inválido')
         except (KeyError, TypeError, ValueError):
             return responder(peticion, FALLO, DATO_INVALIDO, {'razon': 'datos de la reserva inválidos'})
 
@@ -115,18 +127,23 @@ class Servicio_persistencia(I_Servicio_persistencia):
             resultado = session.execute(
                 update(Ocurrencia)
                 .where(Ocurrencia.id == oc_id,
-                       Ocurrencia.puestos_ocupados + n <= Ocurrencia.capacidad)
+                       n <= Ocurrencia.capacidad - Ocurrencia.puestos_ocupados)
                 .values(puestos_ocupados=Ocurrencia.puestos_ocupados + n)
             )
+            # UPDATE condicional es atómico en PostgreSQL: con dos escritores,
+            # la condición se comprueba sobre el valor vigente, no sobre la consulta
+            # de disponibilidad que hizo RMC unos milisegundos antes.
             if resultado.rowcount == 0:
                 return responder(peticion, FALLO, SIN_CUPO, {'razon': f'no hay {n} puestos libres'})
 
             reserva = Reserva(id_cliente=id_cliente, ocurrencia_id=oc_id, numero_puestos=n)
             session.add(reserva)
-            session.flush()                       # asigna reserva.id sin cerrar la transacción
-            return responder(peticion, EXITO, None,
-                             {'id_reserva': reserva.id, 'id_evento': id_evento,
-                              'fecha': escribir_fecha(fecha), 'n_asientos': n})
+            session.flush()  # Ejecuta INSERT y obtiene id; todavía NO es COMMIT.
+            datos_reserva = {'id_reserva': reserva.id, 'id_evento': id_evento,
+                             'fecha': escribir_fecha(fecha), 'n_asientos': n}
+        # Al salir de SessionLocal.begin(), COMMIT confirma ambos cambios. Si
+        # INSERT/COMMIT falla, hay rollback y el servidor no envía EXITO.
+        return responder(peticion, EXITO, None, datos_reserva)
 
     # ---------- Fuera de la primera entrega ----------
     def modificar_reserva(self, peticion):
@@ -154,4 +171,7 @@ class Servicio_persistencia(I_Servicio_persistencia):
     @staticmethod
     def _leer_evento_y_fecha(peticion):
         datos = peticion['datos']
-        return str(datos['id_evento']), leer_fecha(datos['fecha'])
+        id_evento = datos['id_evento']
+        if not isinstance(id_evento, str) or not id_evento.strip() or len(id_evento) > 10:
+            raise ValueError('id_evento debe ser texto de 1 a 10 caracteres')
+        return id_evento, leer_fecha(datos['fecha'])

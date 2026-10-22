@@ -1,0 +1,8 @@
+{
+  "id": "reserva-001",
+  "operacion": "reserva",
+  "id_cliente": 1,
+  "id_evento": "E1",
+  "ocurrencia": 1,
+  "cantidad_asientos": 3
+}

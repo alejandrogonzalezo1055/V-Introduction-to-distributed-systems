@@ -1,0 +1,7 @@
+{
+  "id": "modificacion-fecha-001",
+  "operacion": "modificacion",
+  "id_cliente": 1,
+  "id_reserva": 1,
+  "ocurrencia": 2
+}

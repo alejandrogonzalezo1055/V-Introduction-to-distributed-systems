@@ -1,0 +1,7 @@
+{
+  "id": "consulta-eventos-001",
+  "operacion": "consulta",
+  "tipo": "eventos",
+  "id_cliente": 1,
+  "mes": "2026-10"
+}
