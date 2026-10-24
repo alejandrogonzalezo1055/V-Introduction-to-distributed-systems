@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import zmq
-from comun.config import HOST_PERS, SP_PORT
+from comun.config import HOST_PERS, PS_PORT
 import comun.mensajes as msjs
 
 class I_Servicio_RMC(ABC):
@@ -20,7 +20,7 @@ class Cliente_persistencia:
     def __init__(self):
         zmq_context = zmq.Context()
         self.socket = zmq_context.socket(zmq.REQ)
-        self.socket.connect(f"tcp://{HOST_PERS}:{SP_PORT}")
+        self.socket.connect(f"tcp://{HOST_PERS}:{PS_PORT}")
 
     def enviar(self, peticion):
         self.socket.send_string(msjs.codificar(peticion))

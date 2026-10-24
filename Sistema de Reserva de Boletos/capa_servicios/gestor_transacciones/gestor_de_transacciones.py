@@ -1,20 +1,12 @@
 import zmq
 from comun.config import GT_PORT_CLI, GT_PORT_RMC
 
+
 class Gestor_transacciones():
     def __init__(self):
         self.dealer_socket = None
         self.router_socket = None
-        self.contexto = None
         self.poller = None
-
-    @property
-    def contexto(self):
-        return self._contexto
-
-    @contexto.setter
-    def contexto(self, contexto):
-        self._contexto = contexto
 
     @property
     def dealer_socket(self):    # el del RMC
@@ -42,14 +34,17 @@ class Gestor_transacciones():
 
 
     def iniciar_sockets(self):
-        self.contexto = zmq.Context()
-        self.router_socket = self.contexto.socket(zmq.ROUTER)
+        self.router_socket = zmq.Context().socket(zmq.ROUTER)
         self.router_socket.bind(f"tcp://*:{GT_PORT_CLI}")
-        self.dealer_socket = self.contexto.socket(zmq.DEALER)
+        self.dealer_socket = zmq.Context().socket(zmq.DEALER)
         self.dealer_socket.bind(f"tcp://*:{GT_PORT_RMC}")
+
+
+    def iniciar_poller(self):
         self.poller = zmq.Poller()
         self.poller.register(self.dealer_socket, zmq.POLLIN)
         self.poller.register(self.router_socket, zmq.POLLIN)
+
 
     def iniciar_gestor(self):
         while True:
@@ -63,5 +58,3 @@ class Gestor_transacciones():
                 frames = self.router_socket.recv_multipart()
                 print(f"la peticion es: {frames[-1].decode('utf-8')}")
                 self.dealer_socket.send_multipart(frames)
-
-

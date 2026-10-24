@@ -2,23 +2,27 @@ import comun.mensajes as msjs
 from comun.config import HOST_SERV, GT_PORT_CLI
 import comun.config as conf
 import zmq
-import json
 
 
 class Cliente:
-    def __init__(self, ID=0, nombre='Ramiro'):
-        self.ID = ID
+    numero_clientes = 0
+
+    def __init__(self, nombre='Ramiro', id=0):
+        if id == 0:
+            self.numero_clientes += 1
+            self.id = self.numero_clientes
+        else:
+            self.id = id
         self.nombre = nombre
-        self.socket = None
-        self.contexto = None
+        self.req_socket = None
 
     @property
-    def ID(self):
-        return self._ID
+    def id(self):
+        return self._id
 
-    @ID.setter
-    def ID(self, ID):
-        self._ID = ID
+    @id.setter
+    def id(self, id):
+        self._id = id
 
     @property
     def nombre(self):
@@ -29,37 +33,30 @@ class Cliente:
         self._nombre = nombre
 
     @property
-    def socket(self):
-        return self._socket
+    def req_socket(self):
+        return self._req_socket
 
-    @socket.setter
-    def socket(self, socket):
-        self._socket = socket
-
-    @property
-    def contexto(self):
-        return self._contexto
-
-    @contexto.setter
-    def contexto(self, contexto):
-        self._contexto = contexto
+    @req_socket.setter
+    def req_socket(self, socket):
+        self._req_socket = socket
 
 
     def conectar_con_gt(self):
-        self.contexto = zmq.Context()
-        socket = self.contexto.socket(zmq.REQ)
-        socket.connect(f"tcp://{HOST_SERV}:{GT_PORT_CLI}")
-        self.socket = socket
-        conf.time_out_sockets(self.socket)
+        self.req_socket = zmq.Context().socket(zmq.REQ)
+        conf.time_out_sockets(self.req_socket)
+        self.req_socket.connect(f"tcp://{HOST_SERV}:{GT_PORT_CLI}")
+
+    def cerrar_socket(self):
+        self.req_socket.close()
 
 
     def enviar_peticion(self,peticion):
         peticion_texto = msjs.codificar(peticion)
-        self.socket.send_string(peticion_texto)
-        respuesta_texto = self.socket.recv_string()
-        respuesta_dict = msjs.decodificar(respuesta_texto)
+        self.req_socket.send_string(peticion_texto)
+        respuesta_texto = self.req_socket.recv_string()
+        respuesta_json = msjs.decodificar(respuesta_texto)
 
-        return respuesta_dict
+        return respuesta_json
 
 
     def consultar_evento(self, mes):
@@ -67,13 +64,12 @@ class Cliente:
             datos = {
                     'mes': mes
             }
-            peticion = msjs.crear_req('CO', self.ID, datos)
+            peticion = msjs.crear_req('CO', self.id, datos)
             respuesta = self.enviar_peticion(peticion)
 
             return respuesta
         else:
-            # deberia enviarle la respuesta al cliente, no se como
-            return msjs.crear_rta('F', 'N_E', {})
+            return msjs.crear_rta('F','-' ,'N_E', {})
 
 
     def reservar_evento(self, fecha, id_evento=0, n_asientos=1):
@@ -82,20 +78,12 @@ class Cliente:
             'fecha': fecha.strftime('%Y/%m/%d'),
             'n_asientos': n_asientos
         }
-        peticion = msjs.crear_req('R', self.ID, datos)
+        peticion = msjs.crear_req('R', self.id, datos)
         respuesta = self.enviar_peticion(peticion)
 
         return respuesta
 
 
     def procesar_rta(self, respuesta):
-        if 'estado' in respuesta:
-            print('la peticion fracaso')
-
-
-    def cerrar_socket(self):
-        self.socket.close()
-
-
-    def terminar_contexto(self):
-        self.contexto.term()
+        if respuesta['estado'] == 'F':
+            print(respuesta)

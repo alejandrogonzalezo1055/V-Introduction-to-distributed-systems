@@ -10,7 +10,8 @@ peticiones = {
     'A_R':'AGREGAR_RESERVA',
     'M':'MODIFICACION',
     'CA':'CANCELACION',
-    'N':'NOTIFICACION'
+    'N':'NOTIFICACION',
+    '-':'NULL'
 }
 
 estados_rta = {
@@ -35,12 +36,12 @@ class Peticion(TypedDict):
     uuid: str
     tipo: str
     id_cliente: int
-    # el cliente debe enviar su ip en el msj de cancelacion?
     datos: dict
 
 class Respuesta(TypedDict):
     uuid: str
     estado: str
+    peticion_realizada: str
     motivo: str
     datos: dict
 
@@ -63,12 +64,13 @@ def crear_req(tipo, id_cliente, datos, uuID=''):
         }
     return peticion
 
-def crear_rta(estado, motivo, datos):
+def crear_rta(estado, peticion_realizada, motivo, datos):
     respuesta = None
-    if estado in estados_rta and motivo in motivos_rechazo:
+    if estado in estados_rta and motivo in motivos_rechazo and peticion_realizada in peticiones:
         respuesta: Respuesta = {
             'uuid':str(uuid.uuid4()),
             'estado':estados_rta[estado],
+            'peticion_realizada':peticiones[peticion_realizada],
             'motivo':motivos_rechazo[motivo],
             'datos':datos
         }

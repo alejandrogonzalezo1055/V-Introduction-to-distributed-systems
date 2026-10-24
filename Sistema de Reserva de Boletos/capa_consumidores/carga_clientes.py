@@ -4,6 +4,7 @@ from capa_consumidores.cliente import Cliente
 from datetime import date, timedelta
 from comun.mensajes import meses
 
+
 def ejecutar_caso_especifico(cliente):
 
     cliente.consultar_evento("noviembre")
