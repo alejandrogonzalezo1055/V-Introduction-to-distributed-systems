@@ -9,7 +9,7 @@ class Cliente:
 
     def __init__(self, nombre='Ramiro', id=0):
         if id == 0:
-            self.numero_clientes += 1
+            Cliente.numero_clientes += 1
             self.id = self.numero_clientes
         else:
             self.id = id
@@ -60,16 +60,13 @@ class Cliente:
 
 
     def consultar_evento(self, mes):
-        if mes in msjs.meses:
-            datos = {
-                    'mes': mes
-            }
-            peticion = msjs.crear_req('CO', self.id, datos)
-            respuesta = self.enviar_peticion(peticion)
+        datos = {
+                'mes': mes
+        }
+        peticion = msjs.crear_req('CO', self.id, datos)
+        respuesta = self.enviar_peticion(peticion)
 
-            return respuesta
-        else:
-            return msjs.crear_rta('F','-' ,'N_E', {})
+        return respuesta
 
 
     def reservar_evento(self, fecha, id_evento=0, n_asientos=1):
@@ -85,5 +82,5 @@ class Cliente:
 
 
     def procesar_rta(self, respuesta):
-        if respuesta['estado'] == 'F':
+        if respuesta['estado'] == 'FALLO':
             print(respuesta)

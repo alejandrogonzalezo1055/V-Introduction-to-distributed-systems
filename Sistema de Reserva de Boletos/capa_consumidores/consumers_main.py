@@ -3,7 +3,6 @@ import re
 from capa_consumidores.cliente import Cliente
 
 
-
 def main():
     regex_fecha = r"\d{4}-\d{2}-\d{2}"
 
@@ -11,6 +10,7 @@ def main():
         ...
     elif len(sys.argv) == 1:
         cliente = Cliente(input("Ingrese el nombre del cliente: "))
+        cliente.conectar_con_gt()
 
         while True:
             opcion = int(input("\n1. Consultar eventos\n2. Reservar evento\n0. Salir\n-> "))
@@ -18,6 +18,7 @@ def main():
             match opcion:
                 case 1:
                     mes = input("Ingrese el mes del que quiere conocer los eventos: ")
+
                     respuesta = cliente.consultar_evento(mes)
                     cliente.procesar_rta(respuesta)
                 case 2:
