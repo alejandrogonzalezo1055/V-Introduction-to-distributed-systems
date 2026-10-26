@@ -84,3 +84,24 @@ class Cliente:
     def procesar_rta(self, respuesta):
         if respuesta['estado'] == 'FALLO':
             print(respuesta)
+        elif respuesta['estado'] == 'EXITO':
+            peticion_realizada = respuesta['peticion_realizada']
+
+            match peticion_realizada:
+                case 'CONSULTA':
+                    mes = respuesta['datos']['mes']
+                    #va a ser una lista
+                    eventos = respuesta['datos']['eventos']
+
+                    """{
+                        'uuid':'1232',
+                        'estado':'EXITO',
+                        'peticion_realizada':'CONSULTA',
+                        'motivo':'NULL',
+                        'datos': {
+                            'mes':'enero',
+                            'eventos':[
+                                
+                            ]
+                        }
+                    }"""

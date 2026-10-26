@@ -26,7 +26,8 @@ motivos_rechazo = {
     'N_E': 'NO_EXISTE',
     'D_I': 'DATO_INVALIDO',
     'P_I':'PETICION_INVALIDA',
-    'N_I': 'NO_IMPLEMENTADO'
+    'N_I': 'NO_IMPLEMENTADO',
+    '-':'NULL'
 }
 
 meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']

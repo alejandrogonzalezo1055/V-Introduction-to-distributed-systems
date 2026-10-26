@@ -51,9 +51,9 @@ class Servicio_RMC(I_Servicio_RMC):
 
                 return self.mensajero_persistencia.enviar(agregar_reserva)
             else:
-                return msjs.crear_rta('ER', 'S_C', {'razon': f'habia {puestos_disp} puestos disponibles, menos de los necesarios para su reserva'})
+                return msjs.crear_rta('ER','-', 'S_C', {'razon': f'habia {puestos_disp} puestos disponibles, menos de los necesarios para su reserva'})
         else:
-            return msjs.crear_rta('ER', 'N_E', {'razon':'no existe el evento'})
+            return msjs.crear_rta('ER','-', 'N_E', {'razon':'no existe el evento'})
 
     def modificar_reserva(self, peticion):
-        return msjs.crear_rta('F', 'N_I', {'razon': 'no ha sido implementado aun'})
+        return msjs.crear_rta('F','-', 'N_I', {'razon': 'no ha sido implementado aun'})
