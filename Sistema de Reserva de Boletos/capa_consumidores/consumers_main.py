@@ -1,6 +1,7 @@
 import sys
 import re
 from capa_consumidores.cliente import Cliente
+from datetime import date
 
 
 def menu(cliente):
@@ -19,7 +20,8 @@ def menu(cliente):
                 fecha = input("Ingrese la fecha del evento: ")
                 n_asientos = int(input("Ingrese el numero de asientos a reservar: "))
                 if re.fullmatch(regex_fecha, fecha):
-                    respuesta = cliente.reservar_evento(id, fecha, n_asientos)
+                    year, month, day = fecha.split("-")
+                    respuesta = cliente.reservar_evento(id, date(int(year),int(month),int(day)), n_asientos)
                     cliente.procesar_rta(respuesta)
             case 0:
                 break
